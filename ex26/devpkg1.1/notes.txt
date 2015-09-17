@@ -1,0 +1,5 @@
+write apr_make_dirctory as function because code was used twice.
+
+whe do we need to make cleanup before install? 
+
+we need many options for configure now you can pass only one

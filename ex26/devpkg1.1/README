@@ -1,0 +1,24 @@
+devpkg - software that builds and install packages from sourece
+
+Usage:
+
+    I <url> - install package from url
+
+    B <url> - build downloaded package
+
+    Argumets for I and B:
+
+	c <options> - configure options
+
+	m <options> - make options
+
+	i <options> - install options
+
+    L - list installed packages
+
+    S - create package DB
+
+    F - download sorce from url and un(zip|bz|gz) it.
+
+
+    
