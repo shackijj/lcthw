@@ -3,32 +3,27 @@
 
 List *List_create()
 {
-    return calloc(1, sizeof(List));
-}
-
-void List_destroy(List *list)
-{
-    LIST_FOREACH(list, first, next, cur) {
-        if(cur->prev) {
-            free(cur->prev);
-        }
-    }
-
-    free(list->last);
-    free(list);
-}
-
-void List_clear(List *list)
-{
-    LIST_FOREACH(list, first, next, cur) {
-        free(cur->value);
-    }
+    List *list = calloc(1, sizeof(List));
+    check(list != NULL, "Memory error.");
+    return list;
+error:
+    return NULL;
 }
 
 void List_clear_destroy(List *list)
 {
-    List_clear(list);
-    List_destroy(list);
+    check(list != NULL, "List_clear_destroy got NULL pointer");
+
+    LIST_FOREACH(list, first, next, cur) {
+        if(cur->value) free(cur->value);
+        if(cur->prev) free(cur->prev);
+    }
+    
+    free(list->last);
+    free(list);
+
+error:
+    return;
 }
 
 void List_push(List *list, void *value)
@@ -112,9 +107,48 @@ void *List_remove(List *list, ListNode *node)
     }
 
     list->count--;
+    check(list->count >= 0, "List->count can't be less than zero.");
+    check((list->count > 0) ^ (list->first == NULL), "First can't be NULL whether count > 0");
     result = node->value;
     free(node);
 
 error:
     return result;
 } 
+
+void List_join(List *left, List *right)
+{
+    check(left != NULL, "Destination list is NULL");
+    check(right != NULL, "Source list is NULL");
+
+    LIST_FOREACH(right, first, next, cur) {
+         List_push(left, cur->value);
+    }
+
+error:
+    return;
+}
+
+List *List_split(List *list, int size)
+{
+    List *result = List_create();
+    List *sublist = List_create();
+    int cnt = 0;
+
+    LIST_FOREACH(list, first, next, cur) {
+        if (cnt < size ) {
+            List_push(sublist, cur->value);
+            cnt++;
+        } else {
+            log_info("PUSH INTO RESULT");
+            List_push(result, sublist);
+            sublist = List_create();
+            List_push(sublist, cur->value);
+            cnt = 0;
+        }
+    }
+    
+    List_push(result, sublist);
+
+    return result;   
+}

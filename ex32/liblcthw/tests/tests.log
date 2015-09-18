@@ -1,13 +1,22 @@
-[DEBUG] tests/list_tests.c:103: ----- RUNNING: ./tests/list_tests
-[DEBUG] tests/list_tests.c:93: 
+[DEBUG] tests/list_tests.c:183: ----- RUNNING: ./tests/list_tests
+[DEBUG] tests/list_tests.c:167: 
 ----- test_create
-[DEBUG] tests/list_tests.c:94: 
+[DEBUG] tests/list_tests.c:168: 
+----- test_create_second
+[DEBUG] tests/list_tests.c:169: 
 ----- test_push_pop
-[DEBUG] tests/list_tests.c:95: 
+[DEBUG] tests/list_tests.c:170: 
 ----- test_unshift
-[DEBUG] tests/list_tests.c:96: 
+[DEBUG] tests/list_tests.c:171: 
 ----- test_remove
-[DEBUG] tests/list_tests.c:97: 
+[DEBUG] tests/list_tests.c:172: 
+----- test_join
+[DEBUG] tests/list_tests.c:173: 
 ----- test_shift
-[DEBUG] tests/list_tests.c:98: 
+[DEBUG] tests/list_tests.c:174: 
 ----- test_destroy
+[DEBUG] tests/list_tests.c:175: 
+----- test_destroy_second
+[DEBUG] tests/list_tests.c:176: 
+----- test_split
+[INFO] (src/lcthw/list.c:143) PUSH INTO RESULT
