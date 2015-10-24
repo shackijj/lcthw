@@ -1,25 +1,25 @@
 #include <lcthw/list_algos.h>
 #include <lcthw/dbg.h>
 
+void List_swap(List *list, ListNode *a, ListNode *b) {
+
+    if (list->first == a) list->first = b;
+    if (list->last == b) list->last = a;
+
+    char *b_tmp_value = b->value;
+    ListNode *b_tmp_next = b->prev;
+
+    b->value = a->value;
+    a->value = b_tmp_value;
+    a->next = b_tmp_next;
+    b->next = a;
+    
+
+
+} 
+
 int List_bubble_sort(List *list, List_compare cmp)
 {
-
-/*
-procedure bubbleSort( A : list of sortable items )
-   n = length(A)
-   repeat 
-     swapped = false
-     for i = 1 to n-1 inclusive do
-       
-       if A[i-1] > A[i] then
-         swap( A[i-1], A[i] )
-         swapped = true
-       end if
-     end for
-   until not swapped
-end procedure
-
-*/
     int swapped = 1;
     char *tmp;
     while (swapped) {
@@ -29,10 +29,7 @@ end procedure
         LIST_FOREACH(list, first, next, cur) {
                         
             if (cur->next && cmp(cur->value, cur->next->value) > 0) {
-                log_info("%s is more than %s. Swap", cur->value, cur->next->value);
-                tmp_next = cur->next->value;
-                cur->next->value = cur->value;
-                cur->value = tmp;
+                List_swap(list, cur, cur->next);
                 swapped = 1; 
             } else {
                 log_info("%s not swapped", cur->value);
