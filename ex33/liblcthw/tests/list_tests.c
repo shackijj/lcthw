@@ -27,14 +27,14 @@ char *test_create_second()
 
 char *test_destroy()
 {
-    List_clear_destroy(list);
+    List_destroy(list);
 
     return NULL;
 }
 
 char *test_destroy_second()
 {
-    List_clear_destroy(second_list);
+    List_destroy(second_list);
      
     return NULL;
 }
@@ -142,7 +142,7 @@ char *test_split()
     List_shift(list);
     List_shift(list);
     List_shift(list);
-    List_clear_destroy(list);
+    List_destroy(list);
 
     list = second_list->first->value;
     char *val = List_shift(list);
@@ -155,7 +155,7 @@ char *test_split()
     val = List_shift(list);
     mu_assert(val == test3, "Wrong value after shift.");
 
-    List_clear_destroy(second_list);
+    List_destroy(second_list);
 
     return NULL;
 

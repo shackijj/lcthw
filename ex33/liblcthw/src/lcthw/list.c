@@ -10,7 +10,7 @@ error:
     return NULL;
 }
 
-void List_clear_destroy(List *list)
+void List_destroy(List *list)
 {
     check(list != NULL, "List_clear_destroy got NULL pointer");
 
