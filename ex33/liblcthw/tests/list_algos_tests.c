@@ -32,6 +32,26 @@ int is_sorted(List *words)
     return 1;
 }
 
+char *test_list_swap()
+{
+    List *words = create_words();
+    /*
+    LIST_FOREACH(words, first, next, cur) {
+        List_swap(words, cur, cur->next);
+        break;
+    }
+
+    char *x = List_shift(words);
+    log_info("x is %s", x);
+    mu_assert(strcmp(x, "1234") == 0, "Not swapperd");
+    log_info("First is %s", words->first->value);
+    mu_assert(strcmp(words->first->value, "XXXXX") ==  0, "1234's not first in words");
+    */
+    List_destroy(words);
+    return NULL;   
+}
+
+
 char *test_bubble_sort()
 {
     List *words = create_words();
@@ -78,7 +98,8 @@ char *test_merge_sort()
 char *all_tests()
 {
     mu_suite_start();
-    mu_run_test(test_bubble_sort);
+    mu_run_test(test_list_swap);
+    /*mu_run_test(test_bubble_sort);*/
     /* mu_run_test(test_merge_sort); */
 
     return NULL;

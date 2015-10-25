@@ -81,7 +81,7 @@ char *test_unshift()
 
 char *test_remove()
 {
-    char *val =List_remove(list, list->first->next);
+    char *val = List_remove(list, list->first->next);
     mu_assert(val == test2, "Wrong removed element.");
     mu_assert(List_count(list) == 2, "Wrong count after remove.");
     mu_assert(List_first(list) == test3, "Wrong first after remove.");
@@ -162,6 +162,7 @@ char *test_split()
 }
 
 char *all_tests() {
+
     mu_suite_start();
 
     mu_run_test(test_create);
