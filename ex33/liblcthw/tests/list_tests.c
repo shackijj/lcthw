@@ -155,7 +155,7 @@ char *test_split()
     val = List_shift(list);
     mu_assert(val == test3, "Wrong value after shift.");
 
-    List_destroy(second_list);
+    List_clear_destroy(second_list);
 
     return NULL;
 
@@ -175,9 +175,6 @@ char *all_tests() {
     mu_run_test(test_destroy);
     mu_run_test(test_destroy_second);
     mu_run_test(test_split);
-
-    
-
     return NULL;
 }
 

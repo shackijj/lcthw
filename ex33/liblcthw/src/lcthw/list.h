@@ -20,6 +20,8 @@ typedef struct List {
 // Create empty List
 List *List_create();
 // Destroy existing list and free all elements
+void List_clear_destroy(List *list);
+// Destroy exisiting list
 void List_destroy(List *list);
 // Returns number of elements
 #define List_count(A) ((A)->count)

@@ -10,15 +10,34 @@ error:
     return NULL;
 }
 
-void List_destroy(List *list)
+void List_clear_destroy(List *list)
 {
     check(list != NULL, "List_clear_destroy got NULL pointer");
 
     LIST_FOREACH(list, first, next, cur) {
-        if(cur->value) free(cur->value);
-        if(cur->prev) free(cur->prev);
+        if (cur->value) {
+            free(cur->value);
+        }
+        if(cur->prev) { 
+            free(cur->prev);
+        }
     }
     
+    free(list->last);
+    free(list);
+
+error:
+    return;
+}
+
+void List_destroy(List *list) 
+{
+    check(list != NULL, "List_destroy got NULL pointer");
+
+    LIST_FOREACH(list, first, next, cur) {
+        if (cur->prev) free(cur->prev);
+    }
+
     free(list->last);
     free(list);
 
@@ -140,7 +159,6 @@ List *List_split(List *list, int size)
             List_push(sublist, cur->value);
             cnt++;
         } else {
-            log_info("PUSH INTO RESULT");
             List_push(result, sublist);
             sublist = List_create();
             List_push(sublist, cur->value);
