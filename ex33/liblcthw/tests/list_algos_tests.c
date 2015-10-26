@@ -37,7 +37,7 @@ char *test_list_swap()
     List *words = create_words();
     
     LIST_FOREACH(words, first, next, cur) {
-        List_swap(words, cur, cur->next);
+        List_swap(cur, cur->next);
         break;
     }
 
@@ -99,7 +99,7 @@ char *all_tests()
     mu_suite_start();
     mu_run_test(test_list_swap);
     mu_run_test(test_bubble_sort);
-    /* mu_run_test(test_merge_sort); */
+    mu_run_test(test_merge_sort);
 
     return NULL;
 }
