@@ -1,0 +1,29 @@
+[DEBUG] tests/list_algos_tests.c:107: ----- RUNNING: ./tests/list_algos_tests
+[DEBUG] tests/list_algos_tests.c:100: 
+----- test_list_swap
+[INFO] (tests/list_algos_tests.c:44) Length of list: 5
+[DEBUG] tests/list_algos_tests.c:101: 
+----- test_bubble_sort
+[DEBUG] tests/list_algos_tests.c:102: 
+----- test_merge_sort
+[DEBUG] tests/list_tests.c:181: ----- RUNNING: ./tests/list_tests
+[DEBUG] tests/list_tests.c:168: 
+----- test_create
+[DEBUG] tests/list_tests.c:169: 
+----- test_create_second
+[DEBUG] tests/list_tests.c:170: 
+----- test_push_pop
+[DEBUG] tests/list_tests.c:171: 
+----- test_unshift
+[DEBUG] tests/list_tests.c:172: 
+----- test_remove
+[DEBUG] tests/list_tests.c:173: 
+----- test_join
+[DEBUG] tests/list_tests.c:174: 
+----- test_shift
+[DEBUG] tests/list_tests.c:175: 
+----- test_destroy
+[DEBUG] tests/list_tests.c:176: 
+----- test_destroy_second
+[DEBUG] tests/list_tests.c:177: 
+----- test_split

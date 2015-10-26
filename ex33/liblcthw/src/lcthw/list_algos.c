@@ -11,28 +11,23 @@ void List_swap(ListNode *a, ListNode *b) {
 
 int List_bubble_sort(List *list, List_compare cmp)
 {
-    int length = List_count(list);
-    int swapped = 1;
+    int n = List_count(list);
     int count;
 
-    while (swapped) {
+    while (n > 1) {
 
-        swapped = 0;
+        n = 1;
         count = 1;
 
         LIST_FOREACH(list, first, next, cur) {
-
-            if (count == length) break;
-
+             
             if (cur->next && cmp(cur->value, cur->next->value) > 0) {
                 List_swap(cur, cur->next);
-                swapped = 1; 
+                n = count;
             }
  
             count++;
         }
-
-        length--;
     }
     return 0;        
 }
@@ -50,8 +45,6 @@ List *List_merge_sort(List *list, List_compare cmp)
 
     List *left = List_create();
     List *right = List_create();
-
-    if (length <= 1) return list;
     
     int middle = length / 2;
 
