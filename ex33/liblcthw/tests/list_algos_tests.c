@@ -3,10 +3,13 @@
 #include <lcthw/list_algos.h>
 #include <assert.h>
 #include <string.h>
+#include <sys/time.h>
+#include <stdlib.h>
 
 char *values[] = {"XXXXX", "1234", "abcd", "xjvef", "NDSS"};
 
 #define NUM_VALUES 5
+#define REPEAT 100
 
 List *create_words()
 {
@@ -14,7 +17,9 @@ List *create_words()
     List *words = List_create();
 
     for(i = 0; i < NUM_VALUES; i++) {
-        List_push(words, values[i]);
+        int random = rand() % 5;
+        log_info("%s", values[random]);
+        List_push(words, values[random]);
     }
 
     return words;
@@ -31,26 +36,6 @@ int is_sorted(List *words)
 
     return 1;
 }
-
-char *test_list_swap()
-{
-    List *words = create_words();
-    
-    LIST_FOREACH(words, first, next, cur) {
-        List_swap(cur, cur->next);
-        break;
-    }
-
-    log_info("Length of list: %d", List_count(words));
-
-    char *x = List_shift(words);
-    mu_assert(strcmp(x, "1234") == 0, "Not swapperd");
-    mu_assert(strcmp(words->first->value, "XXXXX") ==  0, "1234's not first in words");
-    
-    List_destroy(words);
-    return NULL;   
-}
-
 
 char *test_bubble_sort()
 {
@@ -93,14 +78,59 @@ char *test_merge_sort()
     return NULL;
 }
 
+void bubble_sort() {
+    List *words = create_words();
+    List_bubble_sort(words, (List_compare)strcmp);
+    List_destroy(words);
+}
+
+void merge_sort() {
+    List *words = create_words();
+    List_bubble_sort(words, (List_compare)strcmp);
+    List_destroy(words);
+}
+
+char *test_timing()
+{
+    int counter = 0;
+    struct timeval tval_before, tval_after, tval_result;
+    gettimeofday(&tval_before, NULL);
+    
+    while (counter < REPEAT) {
+        bubble_sort();
+        counter++;
+    } 
+    gettimeofday(&tval_after, NULL);
+    timersub(&tval_after, &tval_before, &tval_result);
+    log_info("Bubble_sort take Time elapsed: %ld.%06ld\n", 
+    (long int)tval_result.tv_sec, (long int) tval_result.tv_usec);
+
+    counter = 0;
+    gettimeofday(&tval_before, NULL);
+    
+    while (counter < REPEAT) {
+        merge_sort();
+        counter++;
+    } 
+    gettimeofday(&tval_after, NULL);
+    timersub(&tval_after, &tval_before, &tval_result);
+    log_info("Merge_sort take Time elapsed: %ld.%06ld\n", 
+    (long int)tval_result.tv_sec, (long int) tval_result.tv_usec);
+
+
+
+    
+
+    return NULL;
+}
+
 
 char *all_tests()
 {
     mu_suite_start();
-    mu_run_test(test_list_swap);
     mu_run_test(test_bubble_sort);
     mu_run_test(test_merge_sort);
-
+    mu_run_test(test_timing);
     return NULL;
 }
 
