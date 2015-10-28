@@ -9,6 +9,47 @@ void List_swap(ListNode *a, ListNode *b) {
     return;
 } 
 
+void List_insert_sorted(List *list, void *value, List_compare cmp)
+{
+
+    check(list != NULL, "List_insert_sorted got a NULL poineter instead of list.");
+    check(cmp != NULL, "List_insert_sorted got a NULL as second arg, should be function.");    
+    check(value != NULL, "List_insert_sorted got a NULL as value.");
+    
+    if (List_count(list) == 0) List_push(list, value);
+    
+    LIST_FOREACH(list, first, next, cur) {
+
+        if (cmp(cur->value, value) >= 0) {
+            
+            if (cur == list->first) {
+                List_unshift(list, value);
+                return;
+            }
+            
+            ListNode *node = calloc(1, sizeof(ListNode));
+            check_mem(node);
+            
+            node->value = value;
+
+            cur->prev->next = node;
+            node->prev = cur->prev;
+            node->next = cur;
+            cur->prev = node;
+
+            list->count++;
+
+            return; 
+        }
+    } 
+    // If value is biger thab other.
+    List_push(list, value);
+
+error:
+    return;
+}
+
+
 int List_bubble_sort(List *list, List_compare cmp)
 {
     check(list != NULL, "List_bubble_sort got a NULL pointer");

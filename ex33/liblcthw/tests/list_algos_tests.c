@@ -78,6 +78,32 @@ char *test_merge_sort()
     return NULL;
 }
 
+char *test_list_insert_sorted() 
+{
+    List *words = List_create();
+    List_push(words, "b");
+    List_push(words, "d");
+
+    char *min_value = "a";
+    char *max_value = "e";
+    char *middle_value = "c";
+    List_insert_sorted(words, min_value, (List_compare)strcmp);
+    List_insert_sorted(words, max_value, (List_compare)strcmp);
+    List_insert_sorted(words, middle_value, (List_compare)strcmp);
+
+    LIST_FOREACH(words, first, next, cur) {
+        if (strcmp(cur->value, "c") == 0) {
+            mu_assert(strcmp(cur->prev->value, "b") == 0, "Wrong insert in a middle. Bad prev");
+            mu_assert(strcmp(cur->next->value, "d") == 0, "Wrong insert data in a middle. Bad next");
+            mu_assert(strcmp(words->first->value, min_value) == 0, "Wrong min value.");
+            mu_assert(strcmp(words->last->value, max_value) == 0, "Wrong max value.");
+            mu_assert(words->count == 5, "Wrong words count");             
+        }
+    }
+    List_destroy(words);
+    return NULL;
+}
+
 void bubble_sort() {
     List *words = create_words();
     List_bubble_sort(words, (List_compare)strcmp);
@@ -117,10 +143,6 @@ char *test_timing()
     log_info("Merge_sort take Time elapsed: %ld.%06ld\n", 
     (long int)tval_result.tv_sec, (long int) tval_result.tv_usec);
 
-
-
-    
-
     return NULL;
 }
 
@@ -130,6 +152,7 @@ char *all_tests()
     mu_suite_start();
     mu_run_test(test_bubble_sort);
     mu_run_test(test_merge_sort);
+    mu_run_test(test_list_insert_sorted);
     mu_run_test(test_timing);
     return NULL;
 }
