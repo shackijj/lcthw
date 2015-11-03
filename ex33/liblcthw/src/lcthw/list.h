@@ -47,4 +47,6 @@ void *List_remove(List *list, ListNode *node);
 void List_join(List *left, List *right);
 // Split an array into arrays with size elements. The last element may contail less elements
 List *List_split(List *list, int size);
+// Returns node by index
+ListNode *List_get_node(List *list, int pos);
 #endif

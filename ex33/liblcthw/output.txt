@@ -1,0 +1,37 @@
+src/lcthw/list_algos.c: In function ‘List_copy’:
+src/lcthw/list_algos.c:4:38: warning: unused parameter ‘length’ [-Wunused-parameter]
+ void List_copy(List *B, List *A, int length)
+                                      ^
+In file included from src/lcthw/list_algos.h:1:0,
+                 from src/lcthw/list_algos.c:1:
+src/lcthw/list_algos.c: In function ‘List_bottom_up_merge_sort’:
+src/lcthw/list_algos.c:17:29: error: ‘list’ undeclared (first use in this function)
+     int length = List_count(list);
+                             ^
+src/lcthw/list.h:27:25: note: in definition of macro ‘List_count’
+ #define List_count(A) ((A)->count)
+                         ^
+src/lcthw/list_algos.c:17:29: note: each undeclared identifier is reported only once for each function it appears in
+     int length = List_count(list);
+                             ^
+src/lcthw/list.h:27:25: note: in definition of macro ‘List_count’
+ #define List_count(A) ((A)->count)
+                         ^
+src/lcthw/list_algos.c:22:13: error: too few arguments to function ‘List_bottom_up_merge’
+             List_bottom_up_merge(A, i, min(i + width, length), min(i + (2 * width), length), B);
+             ^
+In file included from src/lcthw/list_algos.c:1:0:
+src/lcthw/list_algos.h:29:6: note: declared here
+ void List_bottom_up_merge(List *A, int iLeft, int iRight, int iEnd, List *B, List_compare cmp);
+      ^
+src/lcthw/list_algos.c:14:54: warning: unused parameter ‘cmp’ [-Wunused-parameter]
+ void List_bottom_up_merge_sort(List *A, List_compare cmp)
+                                                      ^
+src/lcthw/list_algos.c: In function ‘List_bottom_up_merge’:
+src/lcthw/list_algos.c:39:9: error: ‘Ai0’ undeclared (first use in this function)
+         Ai0 = List_get_node(A, i0);
+         ^
+src/lcthw/list_algos.c:35:15: warning: unused variable ‘Aio’ [-Wunused-variable]
+     ListNode *Aio, *Ai1, *Bj;
+               ^
+make: *** [src/lcthw/list_algos.o] Error 1

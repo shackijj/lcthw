@@ -1,6 +1,72 @@
 #include <lcthw/list_algos.h>
 #include <lcthw/dbg.h>
 
+void List_copy(List *from, List *to)
+{
+    int counter = 0;
+    ListNode *to_node;
+    
+    LIST_FOREACH(from, first, next, cur) {
+        to_node = List_get_node(to, counter);
+        if (to_node) {
+            to_node->value = cur->value;   
+        } else {
+            break;
+        }
+        counter++;
+    } 
+     
+    return;
+}
+
+void List_bottom_up_merge_sort(List *A, List_compare cmp)
+{
+    List *B = List_create();
+    int length = List_count(A);
+    int width, i;
+    
+    for(width = 1; width < length; width = 2 * width) {
+        for(i = 0; i < length; i = i + (2 * width)) {
+            List_bottom_up_merge(A, i, min(i + width, length), min(i + (2 * width), length), B, cmp);
+        }
+        List_copy(B, A);
+    }
+
+    List_destroy(B);
+    return;
+}
+
+void List_bottom_up_merge(List *A, int iLeft, int iRight, int iEnd, 
+   List *B, List_compare cmp)
+{
+    int i0 = iLeft;
+    int i1 = iRight;
+    int j;
+
+    ListNode *Ai0, *Ai1, *Bj;
+
+    for (j = iLeft; j < iEnd; j++) {
+
+        Ai0 = List_get_node(A, i0);
+        Ai1 = List_get_node(A, i1);
+        Bj = List_get_node(B, j);
+        if (!Bj) {
+            List_push(B, NULL);
+            Bj = B->last;
+        }
+
+        if (i0 < iRight && (i1 >= iEnd || cmp(Ai0->value, Ai1->value) < 0)) {
+            Bj->value = Ai0->value;
+            i0++;
+        } else {
+            Bj->value = Ai1->value;
+            i1++;
+        }
+    }    
+
+    return;
+}
+
 void List_swap(ListNode *a, ListNode *b) {
 
     char *b_tmp_value = b->value;

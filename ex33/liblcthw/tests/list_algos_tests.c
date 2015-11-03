@@ -8,7 +8,7 @@
 
 char *values[] = {"XXXXX", "1234", "abcd", "xjvef", "NDSS"};
 
-#define NUM_VALUES 5
+#define NUM_VALUES 10
 #define REPEAT 100
 
 List *create_words()
@@ -18,7 +18,6 @@ List *create_words()
 
     for(i = 0; i < NUM_VALUES; i++) {
         int random = rand() % 5;
-        log_info("%s", values[random]);
         List_push(words, values[random]);
     }
 
@@ -35,6 +34,23 @@ int is_sorted(List *words)
     }
 
     return 1;
+}
+
+char *test_list_copy() 
+{
+    List *A = create_words();
+    List *B = create_words();
+    List_copy(A, B);
+
+    int rc = strcmp(A->first->value, B->first->value);
+    mu_assert(rc == 0, "First values not equal.");
+    rc = strcmp(A->last->value, B->last->value);
+    mu_assert(rc == 0, "Last values not equal.");
+    mu_assert(B->count == A->count, "Counts not equal.");
+
+    List_destroy(A);
+    List_destroy(B); 
+    return NULL;
 }
 
 char *test_bubble_sort()
@@ -78,6 +94,19 @@ char *test_merge_sort()
     return NULL;
 }
 
+char *test_bottom_up_merge_sort()
+{
+    List *words = create_words();
+    List_bottom_up_merge_sort(words, (List_compare)strcmp);
+    mu_assert(is_sorted(words), "Words are not sorted after bottom_up_merge sort.");
+    
+    List_bottom_up_merge_sort(words, (List_compare)strcmp);
+    mu_assert(is_sorted(words), "Should be still sorted after bottom_up_merge sort.");
+
+    List_destroy(words);
+    return NULL;
+}
+
 char *test_list_insert_sorted() 
 {
     List *words = List_create();
@@ -87,6 +116,7 @@ char *test_list_insert_sorted()
     char *min_value = "a";
     char *max_value = "e";
     char *middle_value = "c";
+ 
     List_insert_sorted(words, min_value, (List_compare)strcmp);
     List_insert_sorted(words, max_value, (List_compare)strcmp);
     List_insert_sorted(words, middle_value, (List_compare)strcmp);
@@ -112,9 +142,17 @@ void bubble_sort() {
 
 void merge_sort() {
     List *words = create_words();
-    List_bubble_sort(words, (List_compare)strcmp);
+    List_merge_sort(words, (List_compare)strcmp);
     List_destroy(words);
 }
+
+void merge_bu_sort() {
+    List *words = create_words();
+    List_bottom_up_merge_sort(words, (List_compare)strcmp);
+    List_destroy(words);
+}
+
+
 
 char *test_timing()
 {
@@ -143,6 +181,20 @@ char *test_timing()
     log_info("Merge_sort take Time elapsed: %ld.%06ld\n", 
     (long int)tval_result.tv_sec, (long int) tval_result.tv_usec);
 
+    counter = 0;
+    gettimeofday(&tval_before, NULL);
+    
+    while (counter < REPEAT) {
+        merge_bu_sort();
+        counter++;
+    } 
+    gettimeofday(&tval_after, NULL);
+    timersub(&tval_after, &tval_before, &tval_result);
+    log_info("Merge_bottom_up_sort take Time elapsed: %ld.%06ld\n", 
+    (long int)tval_result.tv_sec, (long int) tval_result.tv_usec);
+
+
+
     return NULL;
 }
 
@@ -150,10 +202,12 @@ char *test_timing()
 char *all_tests()
 {
     mu_suite_start();
+    mu_run_test(test_list_copy);
     mu_run_test(test_bubble_sort);
     mu_run_test(test_merge_sort);
     mu_run_test(test_list_insert_sorted);
-    mu_run_test(test_timing);
+    mu_run_test(test_bottom_up_merge_sort);
+    //mu_run_test(test_timing);
     return NULL;
 }
 
