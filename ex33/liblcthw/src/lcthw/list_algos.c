@@ -3,19 +3,18 @@
 
 void List_copy(List *from, List *to)
 {
-    int counter = 0;
-    ListNode *to_node;
     
+    ListNode *to_node = to->first;   
+ 
     LIST_FOREACH(from, first, next, cur) {
-        to_node = List_get_node(to, counter);
         if (to_node) {
             to_node->value = cur->value;   
         } else {
             break;
         }
-        counter++;
+        to_node = to_node->next;
     } 
-     
+    
     return;
 }
 
@@ -43,25 +42,34 @@ void List_bottom_up_merge(List *A, int iLeft, int iRight, int iEnd,
     int i1 = iRight;
     int j;
 
-    ListNode *Ai0, *Ai1, *Bj;
+    ListNode *Ai0 = List_get_node(A, i0);
+    ListNode *Ai1 = List_get_node(A, i1);
+    //ListNode *Bj, *Ai0, *Ai1;
+    ListNode *Bj = List_get_node(B, iLeft);
 
     for (j = iLeft; j < iEnd; j++) {
-
-        Ai0 = List_get_node(A, i0);
-        Ai1 = List_get_node(A, i1);
-        Bj = List_get_node(B, j);
+        
+        //Bj = List_get_node(B, j);
+        //Ai0 = List_get_node(A, i0);
+        //Ai1 = List_get_node(A, i1);
+       
         if (!Bj) {
             List_push(B, NULL);
             Bj = B->last;
         }
 
-        if (i0 < iRight && (i1 >= iEnd || cmp(Ai0->value, Ai1->value) < 0)) {
+        if (i0 < iRight && (i1 >= iEnd || cmp(Ai0->value, Ai1->value) <= 0)) {
             Bj->value = Ai0->value;
+            Ai0 = Ai0->next;
             i0++;
+            //Ai0 = List_get_node(A, i0);
         } else {
             Bj->value = Ai1->value;
+            Ai1 = Ai1->next;
             i1++;
+            //Ai1 = List_get_node(A, i1);
         }
+        Bj = Bj->next;
     }    
 
     return;

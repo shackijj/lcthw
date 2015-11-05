@@ -9,7 +9,7 @@
 char *values[] = {"XXXXX", "1234", "abcd", "xjvef", "NDSS"};
 
 #define NUM_VALUES 10
-#define REPEAT 100
+#define REPEAT 10
 
 List *create_words()
 {
@@ -168,7 +168,7 @@ char *test_timing()
     timersub(&tval_after, &tval_before, &tval_result);
     log_info("Bubble_sort take Time elapsed: %ld.%06ld\n", 
     (long int)tval_result.tv_sec, (long int) tval_result.tv_usec);
-
+     
     counter = 0;
     gettimeofday(&tval_before, NULL);
     
@@ -180,7 +180,7 @@ char *test_timing()
     timersub(&tval_after, &tval_before, &tval_result);
     log_info("Merge_sort take Time elapsed: %ld.%06ld\n", 
     (long int)tval_result.tv_sec, (long int) tval_result.tv_usec);
-
+    
     counter = 0;
     gettimeofday(&tval_before, NULL);
     
@@ -192,9 +192,7 @@ char *test_timing()
     timersub(&tval_after, &tval_before, &tval_result);
     log_info("Merge_bottom_up_sort take Time elapsed: %ld.%06ld\n", 
     (long int)tval_result.tv_sec, (long int) tval_result.tv_usec);
-
-
-
+    
     return NULL;
 }
 
@@ -207,7 +205,7 @@ char *all_tests()
     mu_run_test(test_merge_sort);
     mu_run_test(test_list_insert_sorted);
     mu_run_test(test_bottom_up_merge_sort);
-    //mu_run_test(test_timing);
+    mu_run_test(test_timing);
     return NULL;
 }
 
