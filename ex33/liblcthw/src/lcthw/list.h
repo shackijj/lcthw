@@ -21,6 +21,8 @@ typedef struct List {
 List *List_create();
 // Destroy existing list and free all elements
 void List_clear_destroy(List *list);
+// Destroy exisiting list
+void List_destroy(List *list);
 // Returns number of elements
 #define List_count(A) ((A)->count)
 // Returns value of first element
@@ -45,4 +47,6 @@ void *List_remove(List *list, ListNode *node);
 void List_join(List *left, List *right);
 // Split an array into arrays with size elements. The last element may contail less elements
 List *List_split(List *list, int size);
+// Returns node by index
+ListNode *List_get_node(List *list, int pos);
 #endif

@@ -4,6 +4,7 @@
 List *List_create()
 {
     List *list = calloc(1, sizeof(List));
+    list->count = 0;
     check(list != NULL, "Memory error.");
     return list;
 error:
@@ -15,10 +16,29 @@ void List_clear_destroy(List *list)
     check(list != NULL, "List_clear_destroy got NULL pointer");
 
     LIST_FOREACH(list, first, next, cur) {
-        if(cur->value) free(cur->value);
-        if(cur->prev) free(cur->prev);
+        if (cur->value) {
+            free(cur->value);
+        }
+        if(cur->prev) { 
+            free(cur->prev);
+        }
     }
     
+    free(list->last);
+    free(list);
+
+error:
+    return;
+}
+
+void List_destroy(List *list) 
+{
+    check(list != NULL, "List_destroy got NULL pointer");
+
+    LIST_FOREACH(list, first, next, cur) {
+        if (cur->prev) free(cur->prev);
+    }
+
     free(list->last);
     free(list);
 
@@ -140,7 +160,6 @@ List *List_split(List *list, int size)
             List_push(sublist, cur->value);
             cnt++;
         } else {
-            log_info("PUSH INTO RESULT");
             List_push(result, sublist);
             sublist = List_create();
             List_push(sublist, cur->value);
@@ -151,4 +170,22 @@ List *List_split(List *list, int size)
     List_push(result, sublist);
 
     return result;   
+}
+
+ListNode *List_get_node(List *list, int pos) 
+{
+    
+    if (!list) return NULL;
+    if (list->count == 0) return NULL;
+    if (pos > List_count(list) - 1) return NULL;
+    
+    int counter = 0;
+
+    LIST_FOREACH(list, first, next, cur) {
+        if (counter == pos) {
+            return cur;
+        }
+        counter++;               
+    }
+    return NULL;
 }
