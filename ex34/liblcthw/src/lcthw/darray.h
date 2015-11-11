@@ -18,7 +18,7 @@ void DArray_destroy(DArray *array);
 
 void DArray_clear(DArray *array);
 
-void DArray_expand(DArray *array);
+int DArray_expand(DArray *array);
 
 int DArray_contract(DArray *array);
 
@@ -39,15 +39,18 @@ void DArray_clear_destroy(DArray *array);
 static inline void DArray_set(DArray *array, int i, void *el)
 {
     check(i < array->max, "darray attempt to set past max");
+
     if(i > array->end) array->end = i;
+
     array->contents[i] = el;
 error:
     return;
 }
 
-static inline void *DAarray_get(DArray *array, int i)
+static inline void *DArray_get(DArray *array, int i)
 {
     check(i < array->max, "darray attempt to get past max");
+
     return array->contents[i];
 error:
     return NULL;
@@ -70,6 +73,7 @@ static inline void *DArray_new(DArray *array)
 error:
     return NULL;
 
+}
 #define DArray_free(E) free((E))
 
 #endif

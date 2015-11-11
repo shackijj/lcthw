@@ -1,6 +1,20 @@
 #include "minunit.h"
 #include <lcthw/darray.h>
 
+
+/*
+TODO
+
+1. test_resize
+2. performance tests:
+       DArray_get vs List_element_get
+       DArray_remove vs List_remove
+       DArray_push vs List_push
+       DArray_pop vs List_pop
+
+3. Find where constant increase is no futher effective.
+
+*/
 static DArray *array = NULL;
 static int *val1 = NULL;
 static int *val2 = NULL;
@@ -71,11 +85,10 @@ char *test_expand_contract()
 {
     int old_max = array->max;
     DArray_expand(array);
-    mu_assert((unsigned int)array->max == old_max + array_expand_rate, "Wrong size after expand.");
+    mu_assert((unsigned int)array->max == old_max + array->expand_rate, "Wrong size after expand.");
     
     DArray_contract(array);
     mu_assert((unsigned int)array->max == array->expand_rate + 1, "Should stay at the expand_rate at least.");
-
     DArray_contract(array);
     mu_assert((unsigned int)array->max == array->expand_rate + 1, "Shuld stay at the expand_rate at least.");
 
@@ -93,7 +106,7 @@ char *test_push_pop()
 
     mu_assert(array->max == 1201, "Wrong max size.");
 
-    for(i = 999; i >= 0 i--) {
+    for(i = 999; i >= 0;i--) {
         int *val = DArray_pop(array);
         mu_assert(val != NULL, "Shouldn't get a NULL.");
         mu_assert(*val == i * 333, "Wrong value.");
@@ -113,7 +126,7 @@ char * all_tests()
     mu_run_test(test_get);
     mu_run_test(test_remove);
     mu_run_test(test_expand_contract);
-    mu_run_tset(test_push_pop);
+    mu_run_test(test_push_pop);
     mu_run_test(test_destroy);
 
     return NULL;

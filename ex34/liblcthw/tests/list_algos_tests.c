@@ -155,6 +155,7 @@ void merge_bu_sort() {
 void get_node() {
     List *words = create_words();
     ListNode *node = List_get_node(words, NUM_VALUES - 1);
+    if (!node) log_info("List_get_node returned empty node.");
     List_destroy(words);
 }
 
