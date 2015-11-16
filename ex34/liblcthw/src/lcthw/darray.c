@@ -62,11 +62,19 @@ int DArray_expand(DArray *array)
 {
     check(array != NULL, "DArray_expand got a NULL.");
     size_t old_max = array->max;
+    /*
     check(DArray_resize(array, array->max + array->expand_rate) == 0,
             "Failed to expand array to new size: %d", 
             array->max + (int)array->expand_rate);
 
     memset(array->contents + old_max, 0, array->expand_rate + 1);
+    */
+
+    check(DArray_resize(array, array->max * 2) == 0,
+        "Failed to expand array to new size: %d",
+        array->max * 2);
+
+    memset(array->contents + old_max, 0, old_max);
     return 0;
 
 error:
@@ -76,7 +84,7 @@ error:
 int DArray_contract(DArray *array)
 {
     check(array != NULL, "DArray_contract got a NULL.");
-    int new_size = array->end < (int)array->expand_rate ? (int)array->expand_rate : array->end;
+    int new_size = array->end < array->max / 2 ? (int)array->max / 2 : array->end;
 
     return DArray_resize(array, new_size + 1);
 error:

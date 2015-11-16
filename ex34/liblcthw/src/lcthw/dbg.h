@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
+#include <sys/time.h>
 
 #ifdef NDEBUG
 #define debug(M, ...)
@@ -26,5 +27,15 @@
 #define check_mem(A) check((A), "Out of memory.")
 
 #define check_debug(A, M, ...) if(!(A)) { debug(M, ##__VA_ARGS__); errno=0; goto error; }
+
+#define init_timer() struct timeval tval_before, tval_after, tval_result;
+
+#define time_it( F, M )\
+    gettimeofday(&tval_before, NULL);\
+    F();\
+    gettimeofday(&tval_after, NULL);\
+    timersub(&tval_after, &tval_before, &tval_result);\
+    log_info(M " Time elapsed: %ld.%06ld\n", \
+    (long int)tval_result.tv_sec, (long int) tval_result.tv_usec);
 
 #endif

@@ -5,19 +5,13 @@
 /*
 TODO
 
-1. test_resize
-2. performance tests:
-       DArray_get vs List_element_get
-       DArray_remove vs List_remove
-       DArray_push vs List_push
-       DArray_pop vs List_pop
-
 3. Find where constant increase is no futher effective.
 
 */
 static DArray *array = NULL;
 static int *val1 = NULL;
 static int *val2 = NULL;
+#define REPEATS 50000
 
 char *test_create()
 {
@@ -81,7 +75,7 @@ char *test_remove()
     return NULL;
 }
 
-char *test_expand_contract()
+char *test_expand_contract_old()
 {
     int old_max = array->max;
     DArray_expand(array);
@@ -95,6 +89,23 @@ char *test_expand_contract()
     return NULL;
 }
 
+char *test_expand_contract()
+{
+    int old_max = array->max;
+    DArray_expand(array);
+    mu_assert((unsigned int)array->max == old_max + old_max, "Wrong size after expand.");
+    
+    DArray_contract(array);
+    mu_assert((unsigned int)array->max == array->expand_rate + 1, "Should stay at the expand_rate at least.");
+    DArray_contract(array);
+    mu_assert((unsigned int)array->max == array->expand_rate + 1, "Shuld stay at the expand_rate at least.");
+
+    return NULL;
+}
+
+
+
+
 char *test_push_pop()
 {
     int i = 0;
@@ -104,7 +115,7 @@ char *test_push_pop()
         DArray_push(array, val);
     }
 
-    mu_assert(array->max == 1201, "Wrong max size.");
+    mu_assert(array->max == 1600, "Wrong max size.");
 
     for(i = 999; i >= 0;i--) {
         int *val = DArray_pop(array);
@@ -112,6 +123,45 @@ char *test_push_pop()
         mu_assert(*val == i * 333, "Wrong value.");
         DArray_free(val);
     }
+
+    return NULL;
+}
+
+void repeat_push()
+{
+    int i = 0;
+    for (i = 0; i < REPEATS; i++) {
+        int *val = DArray_new(array);
+        *val = i * 111;
+        DArray_push(array, val);
+    }
+}
+
+
+void repeat_pop()
+{
+    int i = 0;
+    
+    for(i = REPEATS - 1; i >= 0; i--) {
+        int *val = DArray_pop(array);
+        DArray_free(val);
+    }
+}
+
+void repeat_get()
+{
+    int i = 0;
+    for(i = 0; i < REPEATS; i++) {
+         DArray_get(array, i);
+    }        
+}
+
+char *test_performance()
+{
+    init_timer();
+    time_it(repeat_push, "DArray_push ");
+    time_it(repeat_get, "DArray_get ");
+    time_it(repeat_pop, "DArray_pop ");
 
     return NULL;
 }
@@ -127,8 +177,9 @@ char * all_tests()
     mu_run_test(test_remove);
     mu_run_test(test_expand_contract);
     mu_run_test(test_push_pop);
+    mu_run_test(test_performance);
     mu_run_test(test_destroy);
-
+    
     return NULL;
 }
 
