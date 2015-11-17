@@ -38,4 +38,13 @@
     log_info(M " Time elapsed: %ld.%06ld\n", \
     (long int)tval_result.tv_sec, (long int) tval_result.tv_usec);
 
+#define time_it_with_args( F, M )\
+    gettimeofday(&tval_before, NULL);\
+    F;\
+    gettimeofday(&tval_after, NULL);\
+    timersub(&tval_after, &tval_before, &tval_result);\
+    log_info(M " Time elapsed: %ld.%06ld\n", \
+    (long int)tval_result.tv_sec, (long int) tval_result.tv_usec);
+
+
 #endif

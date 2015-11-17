@@ -60,9 +60,14 @@ static char *test_operations()
 
     RadixMap *map = RadixMap_create(N);
     mu_assert(map != NULL, "Failed to make the map.");
-    mu_assert(make_random(map), "Didn't make a random fake radix map.");
+
+    init_timer();
+    time_it_with_args(
+        mu_assert(make_random(map), "Didn't make a random fake radix map."),
+        "make_random"
+    );
     
-    RadixMap_sort(map);
+    RadixMap_sort(map, 0);
     mu_assert(check_order(map), "Failed to properly sort the RadixMap.");
    
     mu_assert(test_search(map), "Failed to search test.");
