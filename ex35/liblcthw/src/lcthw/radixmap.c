@@ -32,7 +32,7 @@ void RadixMap_destroy(RadixMap *map)
     }
 }
 
-#define ByteOf(x, y) (((uint8_t *)x)[(y)])
+#define ByteOf(x,y) (((uint8_t *)x)[(y)])
 
 static inline void radix_sort(short offset, uint64_t start, uint64_t max, uint64_t *source, uint64_t *dest)
 {
@@ -68,10 +68,11 @@ void RadixMap_sort(RadixMap *map, size_t start)
     uint64_t *source = &map->contents[0].raw;
     uint64_t *temp = &map->contents[0].raw;
 
+
     radix_sort(0, start, map->end, source, temp);
     radix_sort(1, start, map->end, temp, source);
     radix_sort(2, start, map->end, source, temp);
-    radix_sort(4, start, map->end, temp, source);
+    radix_sort(3, start, map->end, temp, source);
 
 }
 
@@ -116,6 +117,8 @@ int RadixMap_add(RadixMap *map, uint32_t key, uint32_t value)
 
     map->contents[map->end++] = element;
     size_t minimum = RadixMap_find_minimum(map, key);
+
+    log_info("key: %u, value: %u", element.data.key, element.data.value);
 
     RadixMap_sort(map, minimum);
 

@@ -2,6 +2,8 @@
 #include <lcthw/radixmap.h>
 #include <time.h>
 
+#define REPEATS 500
+
 static int make_random(RadixMap *map)
 {
     size_t i = 0;
@@ -11,7 +13,6 @@ static int make_random(RadixMap *map)
     }
 
     return i;
-
 error:
     return 0;
 }
@@ -54,6 +55,22 @@ error:
     return 0;
 }
 
+void rm_lifecycle() 
+{
+    size_t N = REPEATS;
+    RadixMap *perf = RadixMap_create(N);
+    make_random(perf);
+    RadixMap_destroy(perf);
+} 
+
+char *test_performance()
+{
+    init_timer();
+    time_it(rm_lifecycle, "RadixMap lyfecycle");    
+
+    return NULL;
+}
+
 static char *test_operations()
 {
     size_t N = 200;
@@ -61,11 +78,7 @@ static char *test_operations()
     RadixMap *map = RadixMap_create(N);
     mu_assert(map != NULL, "Failed to make the map.");
 
-    init_timer();
-    time_it_with_args(
-        mu_assert(make_random(map), "Didn't make a random fake radix map."),
-        "make_random"
-    );
+    mu_assert(make_random(map), "Didn't make a random fake radix map.");
     
     RadixMap_sort(map, 0);
     mu_assert(check_order(map), "Failed to properly sort the RadixMap.");
@@ -98,7 +111,7 @@ char *all_tests()
     srand(time(NULL));
 
     mu_run_test(test_operations);
-
+    mu_run_test(test_performance);
     return NULL;
 }
 
