@@ -2,13 +2,13 @@
 #include <lcthw/radixmap.h>
 #include <time.h>
 
-#define REPEATS 500
+#define REPEATS 200
 
 static int make_random(RadixMap *map)
 {
     size_t i = 0;
     for (i = 0; i < map->max - 1; i++) {
-        uint32_t key = (int32_t)(rand() | (rand() << 16));
+        uint32_t key = (uint32_t)(rand() | (rand() << 16));
         check(RadixMap_add(map, key, i) == 0, "Failed to add key %u", key);
     }
 
@@ -25,7 +25,8 @@ static int check_order(RadixMap *map)
     for (i = 0; map->end > 0 && i < map->end-1; i++) {
         d1 = map->contents[i];
         d2 = map->contents[i+1];
-
+         
+        //log_info("key: %u, value: %u", d1.data.key, d1.data.value);
         if(d1.data.key > d2.data.key) {
             debug("FAIL:i=%u, key: %u, value: %u, equals_max? %d\n", i, d1.data.key,
                 d1.data.value, d2.data.key == UINT32_MAX);
@@ -57,7 +58,7 @@ error:
 
 void rm_lifecycle() 
 {
-    size_t N = REPEATS;
+    size_t N = 500;
     RadixMap *perf = RadixMap_create(N);
     make_random(perf);
     RadixMap_destroy(perf);
@@ -79,8 +80,9 @@ static char *test_operations()
     mu_assert(map != NULL, "Failed to make the map.");
 
     mu_assert(make_random(map), "Didn't make a random fake radix map.");
-    
-    RadixMap_sort(map, 0);
+    //In Zed's code was:
+    //RadixMap_sort(map, 0);
+    //I think we should sort it again because we do it every time we add a new value
     mu_assert(check_order(map), "Failed to properly sort the RadixMap.");
    
     mu_assert(test_search(map), "Failed to search test.");

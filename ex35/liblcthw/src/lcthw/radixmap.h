@@ -14,7 +14,7 @@ typedef struct RadixMap {
     size_t end;
     uint32_t counter;
     uint32_t max_key;
-    uint32_t min_key;
+    uint32_t min_value;
     RMElement *contents;
     RMElement *temp;
 } RadixMap;
