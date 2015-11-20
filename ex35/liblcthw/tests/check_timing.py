@@ -9,10 +9,11 @@ for i in range(0, 30):
     p = Popen(['./radixmap_tests'], stdin=PIPE, stdout=PIPE, stderr=PIPE)
     out,err = p.communicate()
     
-    for line in err.splitlines():
-        
+    for line in err.splitlines():   
+        print line     
         res = regexp.match(line)
         if res:
+            
             timer += float(res.group(1))
 
 print "Average: %f" % (timer / 30)        
