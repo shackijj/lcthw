@@ -1,13 +1,6 @@
 #include "minunit.h"
 #include <lcthw/darray.h>
 
-
-/*
-TODO
-
-3. Find where constant increase is no futher effective.
-
-*/
 static DArray *array = NULL;
 static int *val1 = NULL;
 static int *val2 = NULL;
@@ -104,9 +97,6 @@ char *test_expand_contract_old()
     return NULL;
 }
 
-
-
-
 char *test_push_pop()
 {
     int i = 0;
@@ -163,7 +153,6 @@ char *test_performance()
     time_it(repeat_push, "DArray_push ");
     time_it(repeat_get, "DArray_get ");
     time_it(repeat_pop, "DArray_pop ");
-
     return NULL;
 }
 

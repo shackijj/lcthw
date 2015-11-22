@@ -49,6 +49,11 @@ char *run_sort_test(int (*func)(DArray *, DArray_compare), const char *name)
 
 } 
 
+char *test_gnu_qsort()
+{
+    return run_sort_test(DArray_gnu_qsort, "gnu_qsort");
+}
+
 char *test_qsort()
 {
     return run_sort_test(DArray_qsort, "qsort");
@@ -67,8 +72,10 @@ char *test_mergesort()
 char * all_tests()
 {
     mu_suite_start();
+    init_timer();
     
-    mu_run_test(test_qsort);
+    time_it_with_args(mu_run_test(test_gnu_qsort), "gnu_qsort");
+
     //mu_run_test(test_heapsort);
     //mu_run_test(test_mergesort);
 
