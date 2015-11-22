@@ -5,9 +5,13 @@
 
 typedef int (*DArray_compare)(const void *a, const void *b);
 
+int DArray_gnu_qsort(DArray *array, DArray_compare cmp);
+
 int DArray_qsort(DArray *array, DArray_compare cmp);
 
-int DArray_gnu_qsort(DArray *array, DArray_compare cmp);
+int __DArray_qsort(DArray *array, int lo, int hi, DArray_compare cmp);
+
+int __DArray_qsort_partition(DArray *array, int lo, int hi, DArray_compare cmp);
 
 int DArray_heapsort(DArray *array, DArray_compare cmp);
 

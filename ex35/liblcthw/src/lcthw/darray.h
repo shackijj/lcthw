@@ -74,6 +74,14 @@ error:
     return NULL;
 
 }
+
+static inline void DArray_swap(DArray *array, int i, int j)
+{
+    void *tmp = array->contents[i];
+    array->contents[i] = array->contents[j];
+    array->contents[j] = tmp;
+}
+
 #define DArray_free(E) free((E))
 
 #endif
