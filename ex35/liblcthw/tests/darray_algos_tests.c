@@ -37,7 +37,7 @@ char *run_sort_test(int (*func)(DArray *, DArray_compare), const char *name)
 
     DArray *words = create_words();
     mu_assert(!is_sorted(words), "Words should start not sorted.");
-
+    
     debug("---Testing %s sorting algorithm.", name);
     int rc = func(words, (DArray_compare)testcmp);
     mu_assert(rc == 0, "sort_failed");
@@ -75,7 +75,7 @@ char * all_tests()
     init_timer();
     
     time_it_with_args(mu_run_test(test_gnu_qsort), "gnu_qsort");
-    mu_run_test(test_qsort);
+    time_it_with_args(mu_run_test(test_qsort), "qsort");
     //mu_run_test(test_heapsort);
     //mu_run_test(test_mergesort);
 
