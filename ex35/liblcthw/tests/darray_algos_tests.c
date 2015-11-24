@@ -76,7 +76,7 @@ char * all_tests()
     
     time_it_with_args(mu_run_test(test_gnu_qsort), "gnu_qsort");
     time_it_with_args(mu_run_test(test_qsort), "qsort");
-    //mu_run_test(test_heapsort);
+    time_it_with_args(mu_run_test(test_heapsort), "heapsort");
     //mu_run_test(test_mergesort);
 
     return NULL;

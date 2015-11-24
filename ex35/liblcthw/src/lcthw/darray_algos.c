@@ -1,6 +1,7 @@
 #include <lcthw/darray_algos.h>
 #include <stdlib.h>
 
+
 int DArray_gnu_qsort(DArray *array, DArray_compare cmp)
 {
     qsort(array->contents, DArray_count(array), sizeof(void *), cmp);
@@ -48,21 +49,69 @@ int __DArray_qsort_partition(DArray *array, int lo, int hi, DArray_compare cmp)
     return i;
 }
 
-
-
 int DArray_heapsort(DArray *array, DArray_compare cmp)
 {
-    //qsort(array->contents, DArray_count(array), sizeof(void *), cmp);
+    __DArray_heapsort_hepify(array, cmp);
+    
+    int end = array->end - 1;
 
-
-
+    while (end > 0) {
+        DArray_swap(array, 0, end);
+        end--;
+        __DArray_heapsort_siftdown(array, 0, end, cmp);
+    }
+    
     return 0;
 }
 
-int DArray_mergesort(DArray *array, DArray_compare cmp)
+void __DArray_heapsort_hepify(DArray *array, DArray_compare cmp)
 {
-    qsort(array->contents, DArray_count(array), sizeof(void *), cmp);
+
+    int start = (int) floor(((double)array->end - 2) / 2);
+
+    while (start >= 0) {
+        __DArray_heapsort_siftdown(array, start, array->end - 1, cmp);
+        start--;
+    }
+
+}
+
+void __DArray_heapsort_siftdown(DArray *array, int start, int end, DArray_compare cmp)
+{
+    int root = start;
+    int child = 0;
+    int swap = 0;
+    
+    while((root * 2) + 1 <= end) {
+        child = (root * 2) + 1;
+        swap = root;
+    
+        if (cmp(&array->contents[swap], &array->contents[child]) < 0)
+            swap = child;
+
+        if (child + 1 <= end && cmp(&array->contents[swap], &array->contents[child+1]) < 0)
+            swap = child + 1;
+        
+        if (swap == root) {
+            return;
+        } else {
+            DArray_swap(array, root, child);
+        }
+    }
+}
+
+int DArray_mergesort(DArray *A, DArray_compare cmp)
+{
+    DArray *B = DArray_create(A->element_size, A->max);
+    __DArray_bottom_up_mergesort(A, B, cmp);
+    DArray_destroy(B);    
     return 0;
 }
 
+void __DArray_bottom_up_mergesort(DArray *A, DArray *B, DArray_compare cmp)
+{
+}
 
+void __DArray_bottom_up_mergesort_merge(DArray *A, int iLeft, int iRight, int iEnd, DArray *B, DArray_compare cmp)
+{
+}

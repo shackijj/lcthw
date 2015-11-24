@@ -82,6 +82,17 @@ static inline void DArray_swap(DArray *array, int i, int j)
     array->contents[j] = tmp;
 }
 
+static inline void DArray_copy(DArray *source, DArray *dest)
+{
+    int i = 0;
+    for(i = 0; i < source->end; i++) {
+        if (i < dest->max) {
+            dest->contents[i] = source->contents[i];
+        } else {
+            DArray_push(dest, source->contents[i]);
+        }  
+    }
+}
 #define DArray_free(E) free((E))
 
 #endif
