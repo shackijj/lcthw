@@ -1,5 +1,8 @@
 #include "minunit.h"
 #include <lcthw/darray_algos.h>
+#include <time.h>
+
+#define REPEATS 100
 
 int testcmp(char **a, char **b)
 {
@@ -8,12 +11,14 @@ int testcmp(char **a, char **b)
 
 DArray *create_words()
 {
-    DArray *result = DArray_create(0, 5);
+    DArray *result = DArray_create(0, REPEATS);
     char *words[] = {"asdfasfd", "werwar", "13234", "asdfasdf", "oioj"};
     int i = 0;
-
-    for (i = 0; i < 5; i++) {
-        DArray_push(result, words[i]);
+    int rand_index = 0;
+    
+    for (i = 0; i < REPEATS; i++) {
+        rand_index = rand() % 5;        
+        DArray_push(result, words[rand_index]);
     }
 
     return result;
@@ -72,12 +77,13 @@ char *test_mergesort()
 char * all_tests()
 {
     mu_suite_start();
+    srand(time(NULL));
     init_timer();
     
     time_it_with_args(mu_run_test(test_gnu_qsort), "gnu_qsort");
     time_it_with_args(mu_run_test(test_qsort), "qsort");
     time_it_with_args(mu_run_test(test_heapsort), "heapsort");
-    //mu_run_test(test_mergesort);
+    time_it_with_args(mu_run_test(test_mergesort), "mergesort");
 
     return NULL;
 }

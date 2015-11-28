@@ -4,6 +4,11 @@
 #include <lcthw/darray.h>
 #include <math.h>
 
+#define min(a, b) \
+    ({__typeof__ (a) _a = (a); \
+      __typeof__(b) _b = (b); \
+      _a > _b ? _b : _a;})
+
 typedef int (*DArray_compare)(const void *a, const void *b);
 
 int DArray_gnu_qsort(DArray *array, DArray_compare cmp);

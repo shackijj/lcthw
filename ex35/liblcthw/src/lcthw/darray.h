@@ -86,7 +86,7 @@ static inline void DArray_copy(DArray *source, DArray *dest)
 {
     int i = 0;
     for(i = 0; i < source->end; i++) {
-        if (i < dest->max) {
+        if (i < dest->end) {
             dest->contents[i] = source->contents[i];
         } else {
             DArray_push(dest, source->contents[i]);
