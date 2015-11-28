@@ -1,7 +1,6 @@
 #include <lcthw/darray_algos.h>
 #include <stdlib.h>
 
-
 int DArray_gnu_qsort(DArray *array, DArray_compare cmp)
 {
     qsort(array->contents, DArray_count(array), sizeof(void *), cmp);
@@ -26,7 +25,7 @@ int __DArray_qsort(DArray *array, int lo, int hi, DArray_compare cmp)
 {
     if (lo < hi) {
         int p = __DArray_qsort_partition(array, lo, hi, cmp); 
-        __DArray_qsort(array, lo, p - 1, cmp);
+        __DArray_qsort(array, lo, p, cmp);
         __DArray_qsort(array, p + 1, hi, cmp);
     }
 
@@ -35,22 +34,22 @@ int __DArray_qsort(DArray *array, int lo, int hi, DArray_compare cmp)
 
 int __DArray_qsort_partition(DArray *array, int lo, int hi, DArray_compare cmp)
 {
-    void *pivot = &array->contents[hi];
-    int i = lo;
-    int j = 0;
+    void *pivot = &array->contents[lo];
+    int i = lo - 1;
+    int j = hi + 1;
 
-    for(j = lo; j <= hi - 1; j++) {
+    while (1) {
 
-        if (cmp(&array->contents[j], pivot) <= 0) {
+        do --j; while (cmp(&array->contents[j], pivot) > 0);
+
+        do ++i; while (cmp(&array->contents[i], pivot) < 0);
+
+        if (i < j) {
             DArray_swap(array, i, j);
-            i++;
-        }       
-
+        } else {
+            return j;
+        }
     }
-
-    DArray_swap(array, i, hi);
-
-    return i;
 }
 
 int DArray_heapsort(DArray *array, DArray_compare cmp)

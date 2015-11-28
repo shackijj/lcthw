@@ -2,7 +2,8 @@
 #include <lcthw/darray_algos.h>
 #include <time.h>
 
-#define REPEATS 100
+
+int REPEATS = 10;
 
 int testcmp(char **a, char **b)
 {
@@ -79,12 +80,15 @@ char * all_tests()
     mu_suite_start();
     srand(time(NULL));
     init_timer();
-    
-    time_it_with_args(mu_run_test(test_gnu_qsort), "gnu_qsort");
-    time_it_with_args(mu_run_test(test_qsort), "qsort");
-    time_it_with_args(mu_run_test(test_heapsort), "heapsort");
-    time_it_with_args(mu_run_test(test_mergesort), "mergesort");
 
+    while (REPEATS < 10000000) { 
+        log_info("REPEATS: %d", REPEATS);
+        time_it_with_args(mu_run_test(test_gnu_qsort), "gnu_qsort");
+        time_it_with_args(mu_run_test(test_qsort), "qsort");
+        time_it_with_args(mu_run_test(test_heapsort), "heapsort");
+        time_it_with_args(mu_run_test(test_mergesort), "mergesort");
+        REPEATS = REPEATS * 10;
+    }
     return NULL;
 }
 
