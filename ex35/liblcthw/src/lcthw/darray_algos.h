@@ -31,4 +31,7 @@ void __DArray_bottom_up_mergesort(DArray *A, DArray *B, DArray_compare cmp);
 
 void __DArray_bottom_up_mergesort_merge(DArray *A, int iLeft, int iRight, int iEnd, DArray *B, DArray_compare cmp);
 
+int DArray_sort_add(DArray *array, DArray_compare cmp, void *el);
+
+int DArray_find(DArray *array, DArray_compare cmp, void *to_find);
 #endif

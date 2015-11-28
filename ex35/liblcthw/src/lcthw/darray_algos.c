@@ -157,3 +157,44 @@ void __DArray_bottom_up_mergesort_merge(DArray *A, int iLeft, int iRight, int iE
         }
     } 
 }
+
+int DArray_sort_add(DArray *array, DArray_compare cmp, void *el)
+{
+    check(array != NULL, "DArray_sort_add got NULL as DArray");
+    check(cmp != NULL, "DArray_sort_add got NULL as DArray_compare");
+
+    DArray_push(array, el);
+    DArray_qsort(array, cmp);   
+    return 0;
+error:
+    return 1;
+}
+
+int DArray_find(DArray *array, DArray_compare cmp, void *to_find)
+{
+    check(array != NULL, "Darray_find got NULL as DArray.");
+    check(cmp != NULL, "DArray_find got NULL as DArray_compare");
+
+    int low = 0;
+    int high = array->end;
+    int rc = 0;
+
+    while(low <= high) {
+        int middle = low + (high - low) / 2;
+        void *key = array->contents[middle];
+       
+        rc = cmp(&to_find, &key);        
+        
+        if (rc < 0) {
+            high = middle - 1;
+        } else if (rc > 0) {
+            low = middle + 1;
+        } else {
+            return middle;
+        }
+    }
+
+    return -1;
+error:
+    return -1;
+}

@@ -148,3 +148,4 @@ void *DArray_pop(DArray *array)
 error:
     return NULL;
 }
+

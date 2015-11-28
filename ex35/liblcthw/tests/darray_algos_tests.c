@@ -2,8 +2,10 @@
 #include <lcthw/darray_algos.h>
 #include <time.h>
 
-
-int REPEATS = 10;
+// Variables for performance test. N - number of elements in DArray for the first repeat.
+// It will be multiplied by 10 until it's less than MAX_N
+#define MAX_N 100
+int N = 10;
 
 int testcmp(char **a, char **b)
 {
@@ -12,12 +14,12 @@ int testcmp(char **a, char **b)
 
 DArray *create_words()
 {
-    DArray *result = DArray_create(0, REPEATS);
+    DArray *result = DArray_create(0, N);
     char *words[] = {"asdfasfd", "werwar", "13234", "asdfasdf", "oioj"};
     int i = 0;
     int rand_index = 0;
     
-    for (i = 0; i < REPEATS; i++) {
+    for (i = 0; i < N; i++) {
         rand_index = rand() % 5;        
         DArray_push(result, words[rand_index]);
     }
@@ -75,20 +77,44 @@ char *test_mergesort()
     return run_sort_test(DArray_mergesort, "mergesort");
 }
 
+char *test_darray_sort_add_and_darray_find()
+{
+    DArray *words = create_words();
+    int old_end = words->end;
+    char *test_word = "zuzuzuz";
+    int rc = DArray_sort_add(words, (DArray_compare)testcmp, test_word); 
+    mu_assert(rc == 0, "DArray_sort_add_failed");
+    mu_assert(old_end + 1 == words->end, "The new element wasn't added to DArray.");
+    mu_assert(is_sorted(words), "didnt sort it");   
+    
+    rc = DArray_find(words, (DArray_compare)testcmp, test_word);
+
+    mu_assert(rc == words->end - 1, "DArray_find found wrong element.");
+
+    DArray_destroy(words);       
+
+    return NULL;
+}
+
 char * all_tests()
 {
     mu_suite_start();
     srand(time(NULL));
     init_timer();
 
-    while (REPEATS < 10000000) { 
-        log_info("REPEATS: %d", REPEATS);
+    // units
+    mu_run_test(test_darray_sort_add_and_darray_find);
+
+    // performance
+    while (N < MAX_N) { 
+        log_info("N: %d", N);
         time_it_with_args(mu_run_test(test_gnu_qsort), "gnu_qsort");
         time_it_with_args(mu_run_test(test_qsort), "qsort");
         time_it_with_args(mu_run_test(test_heapsort), "heapsort");
         time_it_with_args(mu_run_test(test_mergesort), "mergesort");
-        REPEATS = REPEATS * 10;
+        N = N * 10;
     }
+    
     return NULL;
 }
 
