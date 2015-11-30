@@ -180,9 +180,10 @@ int DArray_find(DArray *array, DArray_compare cmp, void *to_find)
     int rc = 0;
 
     while(low <= high) {
+        
         int middle = low + (high - low) / 2;
         void *key = array->contents[middle];
-       
+        log_info("Nide is %p", key);
         rc = cmp(&to_find, &key);        
         
         if (rc < 0) {

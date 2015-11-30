@@ -3,10 +3,17 @@
 #include <lcthw/hashmap.h>
 #include <lcthw/dbg.h>
 #include <lcthw/bstrlib.h>
+#include <lcthw/darray_algos.h>
 
 static int default_compare(void *a, void *b)
 {
     return bstrcmp((bstring)a, (bstring)b);
+}
+
+static int bucket_compare(HashmapNode *a, HashmapNode *b)
+{
+    log_info("hash a: %d, hash b %d", a->hash, b->hash);
+    return bstrcmp((bstring)a->key, (bstring)b->key);
 }
 
 static uint32_t default_hash(void *a)
@@ -93,6 +100,7 @@ static inline DArray *Hashmap_find_bucket(Hashmap *map, void *key,
 {
     uint32_t hash = map->hash(key);
     int bucket_n = hash % DEFAULT_NUMBER_OF_BUCKETS;
+    int DArray_find(DArray *array, DArray_compare cmp, void *to_find);
     check(bucket_n >= 0, "Invalid bucket found: %d", bucket_n);
     *hash_out = hash; // store it for the return the caller can use it
 
@@ -118,7 +126,7 @@ int Hashmap_set(Hashmap *map, void *key, void *data)
     check(bucket, "Error can't create bucket.");
 
     HashmapNode *node = Hashmap_node_create(hash, key, data);
-    DArray_push(bucket, node);
+    DArray_sort_add(bucket, (DArray_compare)bucket_compare, node);
     check_mem(node);
 
     return 0;
@@ -129,7 +137,7 @@ error:
 static inline int Hashmap_get_node(Hashmap *map, uint32_t hash, DArray *bucket, void *key)
 {
     int i = 0;
-
+       
     for(i = 0; i < DArray_end(bucket); i++) {
         debug("TRY: %d", i);
         HashmapNode *node = DArray_get(bucket, i);
@@ -137,8 +145,9 @@ static inline int Hashmap_get_node(Hashmap *map, uint32_t hash, DArray *bucket, 
             return i;
         }
     }
-
+    
     return -1;
+    
 }
 
 void *Hashmap_get(Hashmap *map, void *key)
