@@ -10,11 +10,6 @@ static int default_compare(void *a, void *b)
     return bstrcmp((bstring)a, (bstring)b);
 }
 
-static int bucket_compare(HashmapNode *a, HashmapNode *b)
-{
-    return default_compare(a->key, b->key);
-}
-
 static uint32_t default_hash(void *a)
 {
     size_t len = blength((bstring)a);
@@ -123,6 +118,36 @@ error:
     return NULL;
 }
 
+
+void Hashmap_bucket_qsort(Hashmap *map, DArray *bucket, int lo, int hi)
+{
+    if (lo < hi) {
+        int p = Hashmap_bucket_qsort_partition(map, bucket, lo, hi);
+        Hashmap_bucket_qsort(map, bucket, lo, p);
+        Hashmap_bucket_qsort(map, bucket, p + 1, hi);
+    }      
+}
+
+int Hashmap_bucket_qsort_partition(Hashmap *map, DArray *bucket, int lo, int hi)
+{
+    HashmapNode **nodes = (HashmapNode **) bucket->contents;
+
+    HashmapNode *pivot = nodes[lo];
+
+    int i = lo - 1;
+    int j = hi + 1;
+    while (1) {
+        do --j; while(map->compare(nodes[j]->key, pivot->key) > 0);    
+        do ++i; while(map->compare(nodes[i]->key, pivot->key) < 0);
+        if (i < j) {
+            DArray_swap(bucket, i, j);
+        } else {
+            return j;
+        }
+    }
+}
+
+
 int Hashmap_set(Hashmap *map, void *key, void *data)
 {
     check(map != NULL, "Got NULL instead of map");
@@ -135,7 +160,8 @@ int Hashmap_set(Hashmap *map, void *key, void *data)
     check(bucket, "Error can't create bucket.");
 
     HashmapNode *node = Hashmap_node_create(hash, key, data);
-    DArray_sort_add(bucket, (DArray_compare)bucket_compare, node);
+    DArray_push(bucket, node);
+    Hashmap_bucket_qsort(map, bucket, 0, DArray_end(bucket) - 1);
     check_mem(node);
 
     return 0;

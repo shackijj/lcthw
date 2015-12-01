@@ -3,6 +3,8 @@
 #include <assert.h>
 #include <lcthw/bstrlib.h>
 
+#define ELEMENTS 10
+
 Hashmap *map = NULL;
 static int traverse_called = 0;
 struct tagbstring test1 = bsStatic("test data 1");
@@ -11,6 +13,28 @@ struct tagbstring test3 = bsStatic("test data 3");
 struct tagbstring expect1 = bsStatic("THE VALUE 1");
 struct tagbstring expect2 = bsStatic("THE VALUE 2");
 struct tagbstring expect3 = bsStatic("THE VALUE 3");
+
+bstring keyArray[ELEMENTS];
+bstring valueArray[ELEMENTS];
+
+void init_arrays()
+{
+    int i = 0;
+
+    for(i = 0; i < ELEMENTS; i++) {
+        keyArray[i] = (bstring) bformat("test key %d", i);
+        valueArray[i] =  (bstring) bformat("test value %d", i);
+    }
+}
+
+void destroy_arrays()
+{
+    int i = 0;
+    for (i = 0; i < ELEMENTS; i++) {
+        bdestroy(keyArray[i]);
+        bdestroy(valueArray[i]);
+    }
+}
 
 static int traverse_good_cb(HashmapNode *node)
 {
@@ -106,6 +130,19 @@ char *test_delete()
     return NULL;
 }
 
+char *test_performance()
+{
+    int i = 0;
+    init_arrays();
+
+    for (i = 0; i < ELEMENTS; i++) {
+        Hashmap_set(map, keyArray[i], valueArray[i]);     
+    }
+
+    destroy_arrays();
+    return NULL;
+}
+
 char *all_tests()
 {
     mu_suite_start();
@@ -115,7 +152,13 @@ char *all_tests()
     mu_run_test(test_traverse);
     mu_run_test(test_delete);
     mu_run_test(test_destroy);
- 
+
+
+    
+    mu_run_test(test_create);
+    mu_run_test(test_performance);
+    mu_run_test(test_destroy); 
+
     return NULL;
 }
 
