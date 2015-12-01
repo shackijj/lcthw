@@ -12,8 +12,7 @@ static int default_compare(void *a, void *b)
 
 static int bucket_compare(HashmapNode *a, HashmapNode *b)
 {
-    log_info("hash a: %d, hash b %d", a->hash, b->hash);
-    return bstrcmp((bstring)a->key, (bstring)b->key);
+    return default_compare(a->key, b->key);
 }
 
 static uint32_t default_hash(void *a)
@@ -100,7 +99,6 @@ static inline DArray *Hashmap_find_bucket(Hashmap *map, void *key,
 {
     uint32_t hash = map->hash(key);
     int bucket_n = hash % DEFAULT_NUMBER_OF_BUCKETS;
-    int DArray_find(DArray *array, DArray_compare cmp, void *to_find);
     check(bucket_n >= 0, "Invalid bucket found: %d", bucket_n);
     *hash_out = hash; // store it for the return the caller can use it
 
@@ -136,18 +134,34 @@ error:
 
 static inline int Hashmap_get_node(Hashmap *map, uint32_t hash, DArray *bucket, void *key)
 {
-    int i = 0;
-       
-    for(i = 0; i < DArray_end(bucket); i++) {
-        debug("TRY: %d", i);
-        HashmapNode *node = DArray_get(bucket, i);
-        if(node->hash == hash && map->compare(node->key, key) == 0) {
-            return i;
+    check(map != NULL, "Got NULL instead of map");
+    check(bucket != NULL, "Got NULL instead of bucket");
+
+    int low = 0;
+    int high = DArray_end(bucket);
+
+    while(low <= high) {
+        int middle = low + (high - low) / 2;
+        HashmapNode *node = DArray_get(bucket, middle);
+
+        if (node == NULL) {
+            debug("Empty bucket on %p", bucket); 
+            return -1;
+        }
+
+        int rc = map->compare(node->key, key);
+        if (rc < 0) {
+            high = middle - 1;
+        } else if (rc > 0) {
+            low = middle + 1;
+        } else {
+            return node->hash == hash ? middle : -1;
         }
     }
     
     return -1;
-    
+error:
+    return -1;
 }
 
 void *Hashmap_get(Hashmap *map, void *key)
