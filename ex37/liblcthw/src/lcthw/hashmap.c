@@ -81,6 +81,9 @@ void Hashmap_destroy(Hashmap *map)
 
 static inline HashmapNode *Hashmap_node_create(int hash, void *key, void *data)
 {
+    check(key != NULL, "Empty key");
+    check(data != NULL, "Empty data");
+
     HashmapNode *node = calloc(1, sizeof(HashmapNode));
     check_mem(node);
 
@@ -97,6 +100,9 @@ error:
 static inline DArray *Hashmap_find_bucket(Hashmap *map, void *key, 
          int create, uint32_t *hash_out)
 {
+    check(map != NULL, "Got NULL instead of map");
+    check(key != NULL, "Empty key");
+ 
     uint32_t hash = map->hash(key);
     int bucket_n = hash % DEFAULT_NUMBER_OF_BUCKETS;
     check(bucket_n >= 0, "Invalid bucket found: %d", bucket_n);
@@ -119,6 +125,11 @@ error:
 
 int Hashmap_set(Hashmap *map, void *key, void *data)
 {
+    check(map != NULL, "Got NULL instead of map");
+    check(key != NULL, "Empty key");
+    check(data != NULL, "Empty data");
+
+
     uint32_t hash = 0;
     DArray *bucket = Hashmap_find_bucket(map, key, 1, &hash);
     check(bucket, "Error can't create bucket.");
@@ -131,6 +142,22 @@ int Hashmap_set(Hashmap *map, void *key, void *data)
 error:
     return -1;
 }
+
+int Hashmap_set_new(Hashmap *map, void *key, void *data)
+{
+    check(map != NULL, "Got NULL instead of map");
+    check(key != NULL, "Empty key");
+    check(data != NULL, "Empty data");
+
+    if (Hashmap_get(map, key) == NULL) {
+        return Hashmap_set(map, key, data);
+    }
+
+    return -1;
+error:
+    return -1;
+}
+
 
 static inline int Hashmap_get_node(Hashmap *map, uint32_t hash, DArray *bucket, void *key)
 {

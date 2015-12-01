@@ -28,6 +28,8 @@ void Hashmap_destroy(Hashmap *map);
 
 int Hashmap_set(Hashmap *map, void *key, void *data);
 void *Hashmap_get(Hashmap *map, void *key);
+// Set element if key not already in map. 
+int Hashmap_set_new(Hashmap *map, void *key, void *data);
 
 int Hashmap_traverse(Hashmap *map, Hashmap_traverse_cb traverse_cb);
 
