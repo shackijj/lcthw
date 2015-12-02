@@ -47,3 +47,43 @@ uint32_t Hashmap_djb_hash(void *data)
     }
     return hash;
 }
+
+uint32_t Hashmap_jenkins_hash(void *data)
+{
+    size_t len = blength((bstring)data);
+    char *key = bdata((bstring)data);
+    uint32_t hash = 0;
+    uint32_t i = 0;
+
+    for(hash = i = 0; i < len; ++i)
+    {
+        hash += key[i];
+        hash += (hash << 10);
+        hash ^= (hash >> 6);
+    }
+
+    hash += (hash << 3);
+    hash ^= (hash >> 11);
+    hash += (hash << 15);
+
+    return hash;
+}
+
+uint32_t Hashmap_pjw_hash(void *data)
+{
+    bstring s = (bstring) data;
+
+    uint32_t hash = 0;
+    uint32_t test = 0;
+    int i = 0;
+
+    for(i = 0; i < blength(s); i++) {
+        hash = (hash << 4) + bchare(s, i, 0);
+
+        if((test = hash & 0xf0000000) != 0) {
+            hash = ((hash ^ (test >> 24)) & (0xfffffff));
+        }
+    }
+
+    return hash;
+}

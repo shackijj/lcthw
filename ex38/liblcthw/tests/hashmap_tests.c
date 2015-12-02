@@ -2,6 +2,7 @@
 #include <lcthw/hashmap.h>
 #include <assert.h>
 #include <lcthw/bstrlib.h>
+#include <lcthw/hashmap_algos.h>
 
 #define ELEMENTS 100
 
