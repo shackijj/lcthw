@@ -150,10 +150,10 @@ int Hashmap_bucket_qsort_partition(Hashmap *map, DArray *bucket, int lo, int hi)
 
 int Hashmap_set(Hashmap *map, void *key, void *data)
 {
+
     check(map != NULL, "Got NULL instead of map");
     check(key != NULL, "Empty key");
     check(data != NULL, "Empty data");
-
 
     uint32_t hash = 0;
     DArray *bucket = Hashmap_find_bucket(map, key, 1, &hash);
@@ -161,7 +161,7 @@ int Hashmap_set(Hashmap *map, void *key, void *data)
 
     HashmapNode *node = Hashmap_node_create(hash, key, data);
     DArray_push(bucket, node);
-    Hashmap_bucket_qsort(map, bucket, 0, DArray_end(bucket) - 1);
+    Hashmap_bucket_qsort(map, bucket, 0, bucket->end - 1);
     check_mem(node);
 
     return 0;
@@ -174,7 +174,7 @@ int Hashmap_set_new(Hashmap *map, void *key, void *data)
     check(map != NULL, "Got NULL instead of map");
     check(key != NULL, "Empty key");
     check(data != NULL, "Empty data");
-
+ 
     if (Hashmap_get(map, key) == NULL) {
         return Hashmap_set(map, key, data);
     }
@@ -182,27 +182,28 @@ int Hashmap_set_new(Hashmap *map, void *key, void *data)
     return -1;
 error:
     return -1;
+
 }
 
 
-static inline int Hashmap_get_node(Hashmap *map, uint32_t hash, DArray *bucket, void *key)
+static inline int Hashmap_get_node(Hashmap *map, uint32_t hash, DArray *bucket, void *to_find)
 {
     check(map != NULL, "Got NULL instead of map");
     check(bucket != NULL, "Got NULL instead of bucket");
 
     int low = 0;
-    int high = DArray_end(bucket);
+    int high = bucket->end;
 
     while(low <= high) {
         int middle = low + (high - low) / 2;
         HashmapNode *node = DArray_get(bucket, middle);
 
         if (node == NULL) {
-            debug("Empty bucket on %p", bucket); 
             return -1;
         }
+        
+        int rc = map->compare(to_find, node->key);
 
-        int rc = map->compare(node->key, key);
         if (rc < 0) {
             high = middle - 1;
         } else if (rc > 0) {
@@ -211,7 +212,6 @@ static inline int Hashmap_get_node(Hashmap *map, uint32_t hash, DArray *bucket, 
             return node->hash == hash ? middle : -1;
         }
     }
-    
     return -1;
 error:
     return -1;
@@ -259,13 +259,20 @@ void *Hashmap_delete(Hashmap *map, void *key)
 {
     uint32_t hash = 0;
     DArray *bucket = Hashmap_find_bucket(map, key, 0, &hash);
-    if (!bucket) return NULL;
-
+    if (!bucket) { 
+        debug("Bucket not found!"); 
+        return NULL;
+    }
+ 
     int i = Hashmap_get_node(map, hash, bucket, key);
-    if(i == -1) return NULL;
+    if(i == -1) {
+         debug("Node not found!"); 
+         return NULL;
+    }
 
     HashmapNode *node = DArray_get(bucket, i);
     void *data = node->data;
+    debug("Data is %s", bdata((bstring)node->data));
     free(node);
 
     HashmapNode *ending = DArray_pop(bucket);
@@ -274,6 +281,8 @@ void *Hashmap_delete(Hashmap *map, void *key)
         // alright looks like it's not the last ont, swap_it
         DArray_set(bucket, i, ending);
     }
+
+    Hashmap_bucket_qsort(map, bucket, 0, bucket->end - 1);
 
     return data;
 }    
