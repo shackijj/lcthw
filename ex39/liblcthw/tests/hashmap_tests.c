@@ -46,7 +46,7 @@ static int traverse_good_cb(HashmapNode *node)
 
 static int traverse_debug(HashmapNode *node)
 {
-    debug("KEY: %s, HASH %zu", bdata((bstring)node->key), node->hash);
+    debug("KEY: %s", bdata((bstring)node->key));
     return 0;
 }
 

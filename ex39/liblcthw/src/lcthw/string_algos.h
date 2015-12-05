@@ -15,7 +15,7 @@ typedef struct StringScanner {
 
 int String_find(bstring in, bstring what);
 
-StringScanner *StringScanner_Create(bstring in);
+StringScanner *StringScanner_create(bstring in);
 
 int StringScanner_scan(StringScanner *scan, bstring tofind);
 

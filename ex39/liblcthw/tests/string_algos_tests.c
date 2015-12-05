@@ -6,7 +6,7 @@
 struct tagbstring IN_STR = bsStatic("I have ALPHA beta ALPHA and oranges ALPHA");
 struct tagbstring ALPHA = bsStatic("ALPHA");
 const int TEST_TIME = 1;
-
+struct bstrList *list = NULL;
 
 char *test_find_and_scan()
 {
@@ -33,11 +33,20 @@ char *test_find_and_scan()
     return NULL;
 }
 
-char init_bstrList() 
+void init_bstrList() 
 {
-    struct bstrList list = bsplit((bstring) IN_STR, ' ');
-    return NULL;
+    list = bsplit(&IN_STR, ' ');
+    log_info("List mlen %d, list qty %d", list->mlen, list->qty);
+    
 }
+
+void destroy_bstrList()
+{
+    if(list) {
+       bstrListDestroy(list);
+    }
+}
+    
 
 char *test_binstr_performance()
 {
@@ -52,7 +61,7 @@ char *test_binstr_performance()
 
     do {
         for(i = 0; i < 1000; i++) {
-            found_at = binstr(&IN_STR, 0, &ALPHA);
+            found_at = binstr(&IN_STR, 0, list->entry[i % list->mlen]);
             mu_assert(found_at != BSTR_ERR, "Failed to find!");
             find_count++;
         }
@@ -79,7 +88,7 @@ char *test_find_performance()
 
     do {
         for(i = 0; i < 1000; i++) {
-            found_at = String_find(&IN_STR, &ALPHA);
+            found_at = String_find(&IN_STR, list->entry[i % list->mlen]);
             find_count++;
         }
 
@@ -100,7 +109,7 @@ char *test_scan_performance()
     time_t elapsed = 0;
     StringScanner *scan = StringScanner_create(&IN_STR);
     // Warm up
-    found_at = StringScanner_scan(scan, &ALPHA);
+    found_at = StringScanner_scan(scan, list->entry[i % list->mlen]);
 
 
     time_t start = time(NULL);
@@ -108,9 +117,9 @@ char *test_scan_performance()
     do {
         for(i = 0; i < 1000; i++) {
             found_at = 0;
-
+            
             do {
-                found_at = StringScanner_scan(scan, &ALPHA);
+                found_at = StringScanner_scan(scan, list->entry[i % list->mlen]);
                 find_count++;
             } while(found_at != -1);
         }
@@ -132,14 +141,14 @@ char *all_tests()
     mu_suite_start();
 
     mu_run_test(test_find_and_scan);
-
+    init_bstrList();
     //this is an idiom for commenting out sections of code
 #if 1
     mu_run_test(test_scan_performance);
     mu_run_test(test_find_performance);
     mu_run_test(test_binstr_performance);
 #endif
-
+    destroy_bstrList();
 
     return NULL;
 }
