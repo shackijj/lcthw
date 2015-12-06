@@ -2,6 +2,8 @@
 
 BSTree *BSTree_create(BSTree_compare compare)
 {
+
+
 }
 
 void BSTree_destroy(BSTree *map)
