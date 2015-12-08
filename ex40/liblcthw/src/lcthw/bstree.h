@@ -1,11 +1,15 @@
 #ifndef _lcthw_BSTree_h
 #define _lcthw_BSTree_h
 
+#include <stdint.h>
+
 typedef int (*BSTree_compare)(void *a, void *b);
+typedef uint32_t (*BSTree_hash)(void *data);
 
 typedef struct BSTreeNode {
     void *key;
     void *data;
+    uint32_t hash;
 
     struct BSTreeNode *left;
     struct BSTreeNode *right;
@@ -14,13 +18,15 @@ typedef struct BSTreeNode {
 
 typedef struct BSTree {
     int count;
+
+    BSTree_hash hash;
     BSTree_compare compare;
     BSTreeNode *root;
 } BSTree;
 
 typedef int (*BSTree_traverse_cb)(BSTreeNode *node);
 
-BSTree *BSTree_create(BSTree_compare compare);
+BSTree *BSTree_create(BSTree_compare compare, BSTree_hash hash);
 void BSTree_destroy(BSTree *map);
 
 int BSTree_set(BSTree *map, void *key, void *data);

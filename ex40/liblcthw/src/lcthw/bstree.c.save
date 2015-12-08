@@ -5,43 +5,21 @@
 
 static int default_compare(void *a, void *b)
 {
-    return bstrcmp((bstring) a, (bstring) b);
+    return bstrcmp((bstring)a, (bstring)b);
 }
 
-static uint32_t default_hash(void *data)
+
+BSTree *BSTree_create(BSTree_compare compare)
 {
-    size_t len = blength((bstring)data);
-    char *key = bdata((bstring)data);
-    uint32_t hash = 0;
-    uint32_t i = 0;
-
-    for(hash = i = 0; i < len; ++i)
-    {
-        hash += key[i];
-        hash += (hash << 10);
-        hash ^= (hash >> 6);
-    }
-
-    hash += (hash << 3);
-    hash ^= (hash >> 11);
-    hash += (hash << 15);
-
-    return hash;
-}
-
-BSTree *BSTree_create(BSTree_compare compare, BSTree_hash hash)
-{
-    // Why not malloc?
     BSTree *map = calloc(1, sizeof(BSTree));
     check_mem(map);
 
     map->compare = compare == NULL ? default_compare : compare;
-    map->hash = hash == NULL ? default_hash : hash;
 
     return map;
 
 error:
-    if (map) {
+    if(map) {
         BSTree_destroy(map);
     }
     return NULL;
@@ -61,7 +39,8 @@ void BSTree_destroy(BSTree *map)
     }
 }
 
-static inline BSTreeNode *BSTreeNode_create(BSTreeNode *parent, void *key, void *data, uint32_t hash)
+
+static inline BSTreeNode *BSTreeNode_create(BSTreeNode *parent, void *key, void *data)
 {
     BSTreeNode *node = calloc(1, sizeof(BSTreeNode));
     check_mem(node);
@@ -69,92 +48,79 @@ static inline BSTreeNode *BSTreeNode_create(BSTreeNode *parent, void *key, void 
     node->key = key;
     node->data = data;
     node->parent = parent;
-    node->hash = hash;
-
     return node;
 
 error:
     return NULL;
 }
 
-static inline void BSTree_setnode(BSTree *map, BSTreeNode *node, void *key, void *data, uint32_t hash)
-{
-    //int cmp = map->compare(node->key, key);
 
-    if(node->hash <= hash) {
+static inline void BSTree_setnode(BSTree *map, BSTreeNode *node, void *key, void *data)
+{
+    int cmp = map->compare(node->key, key);
+
+    if(cmp <= 0) {
         if(node->left) {
-            BSTree_setnode(map, node->left, key, data, hash);
+            BSTree_setnode(map, node->left, key, data);
         } else {
-            node->left = BSTreeNode_create(node, key, data, hash);
+            node->left = BSTreeNode_create(node, key, data);
         }
     } else {
         if(node->right) {
-            BSTree_setnode(map, node->right, key, data, hash);
+            BSTree_setnode(map, node->right, key, data);
         } else {
-            node->right = BSTreeNode_create(node, key, data, hash);
+            node->right = BSTreeNode_create(node, key, data);
         }
     }
 }
 
+
 int BSTree_set(BSTree *map, void *key, void *data)
 {
-    check(map != NULL, "Map can't be NULL.");
-    check(key != NULL, "Key can't be NULL.");
-
-    uint32_t hash = map->hash(key);
-
     if(map->root == NULL) {
-        map->root = BSTreeNode_create(NULL, key, data, hash);
+        // first so just make it and get out
+        map->root = BSTreeNode_create(NULL, key, data);
         check_mem(map->root);
     } else {
-        BSTree_setnode(map, map->root, key, data, hash);
+        BSTree_setnode(map, map->root, key, data);
     }
 
     return 0;
-
 error:
     return -1;
 }
 
-static inline BSTreeNode *BSTree_getnode(BSTree *map, BSTreeNode *node, void *key, uint32_t hash)
+static inline BSTreeNode *BSTree_getnode(BSTree *map, BSTreeNode *node, void *key)
 {
-    //int cmp = map->compare(node->key, key);
+    int cmp = map->compare(node->key, key);
 
-    if(node->hash == hash && map->compare(node->key, key) == 0) {
+    if(cmp == 0) {
         return node;
-    } else if (node->hash < hash) {
+    } else if(cmp < 0) {
         if(node->left) {
-            return BSTree_getnode(map, node->left, key, hash);
+            return BSTree_getnode(map, node->left, key);
         } else {
             return NULL;
         }
     } else {
         if(node->right) {
-            return BSTree_getnode(map, node->right, key, hash);
+            return BSTree_getnode(map, node->right, key);
         } else {
             return NULL;
         }
     }
-    
-    return NULL;
 }
 
 void *BSTree_get(BSTree *map, void *key)
 {
-    check(map != NULL, "Map can't be NULL.");
-    check(key != NULL, "Key can't be NULL.");
-
-    uint32_t hash = map->hash(key);
-
     if(map->root == NULL) {
         return NULL;
     } else {
-        BSTreeNode *node = BSTree_getnode(map, map->root, key, hash);
+        BSTreeNode *node = BSTree_getnode(map, map->root, key);
         return node == NULL ? NULL : node->data;
     }
-error:
-    return NULL;
 }
+
 
 static inline int BSTree_traverse_nodes(BSTreeNode *node, BSTree_traverse_cb traverse_cb)
 {
@@ -200,6 +166,7 @@ static inline void BSTree_replace_node_in_parent(BSTree *map, BSTreeNode *node, 
             node->parent->right = new_value;
         }
     } else {
+        // this is the root so gotta change it
         map->root = new_value;
     }
 
@@ -211,37 +178,40 @@ static inline void BSTree_replace_node_in_parent(BSTree *map, BSTreeNode *node, 
 static inline void BSTree_swap(BSTreeNode *a, BSTreeNode *b)
 {
     void *temp = NULL;
-    uint32_t temp_hash = NULL;
     temp = b->key; b->key = a->key; a->key = temp;
     temp = b->data; b->data = a->data; a->data = temp;
-    temp_hash = b->hash; b->hash = a->hash; a->hash = temp_hash;
 }
 
-static inline BSTreeNode *BSTree_node_delete(BSTree *map, BSTreeNode *node, void *key, uint32_t hash)
+static inline BSTreeNode *BSTree_node_delete(BSTree *map, BSTreeNode *node, void *key)
 {
-    //int cmp = map->compare(node->key, key);
+    int cmp = map->compare(node->key, key);
 
-    if(node->hash < hash) {
+    if(cmp < 0) {
         if(node->left) {
-            return BSTree_node_delete(map, node->left, key, hash);
+            return BSTree_node_delete(map, node->left, key);
         } else {
-            //not found
+            // not found
             return NULL;
         }
-    } else if (node->hash > hash) {
+    } else if(cmp > 0) {
         if(node->right) {
-            return BSTree_node_delete(map, node->right, key, hash);
+            return BSTree_node_delete(map, node->right, key);
         } else {
             // not found
             return NULL;
         }
     } else {
         if(node->left && node->right) {
-            BSTreeNode *sucessor = BSTree_find_min(node->right);
-            BSTree_swap(sucessor, node);
-            
-            BSTree_replace_node_in_parent(map, sucessor, sucessor->right);
-            return sucessor;
+            // swap this node for the smallest node that is bigger than us
+            BSTreeNode *successor = BSTree_find_min(node->right);
+            BSTree_swap(successor, node);
+
+            // this leaves the old successor with possibly a right child
+            // so replace it with that right child
+            BSTree_replace_node_in_parent(map, successor, successor->right);
+
+            // finally it's swapped, so return successor instead of node
+            return successor;
         } else if(node->left) {
             BSTree_replace_node_in_parent(map, node, node->left);
         } else if(node->right) {
@@ -257,10 +227,9 @@ static inline BSTreeNode *BSTree_node_delete(BSTree *map, BSTreeNode *node, void
 void *BSTree_delete(BSTree *map, void *key)
 {
     void *data = NULL;
-    uint32_t hash = map->hash(key);
 
     if(map->root) {
-        BSTreeNode *node = BSTree_node_delete(map, map->root, key, hash);
+        BSTreeNode *node = BSTree_node_delete(map, map->root, key);
 
         if(node) {
             data = node->data;
