@@ -31,6 +31,36 @@ static uint32_t default_hash(void *a)
     return hash;
 }
 
+static inline int Hashmap_bucket_qsort_partition(DArray *bucket, int lo, int hi)
+{
+    HashmapNode **nodes = (HashmapNode **) bucket->contents;
+
+    HashmapNode *pivot = nodes[lo];
+
+    int i = lo - 1;
+    int j = hi + 1;
+    while (1) {
+        do --j; while(nodes[j]->hash > pivot->hash);    
+        do ++i; while(nodes[i]->hash < pivot->hash);
+        if (i < j) {
+            DArray_swap(bucket, i, j);
+        } else {
+            return j;
+        }
+    }
+}
+
+static inline void Hashmap_bucket_qsort(DArray *bucket, int lo, int hi)
+{
+    if (lo < hi) {
+        int p = Hashmap_bucket_qsort_partition(bucket, lo, hi);
+        Hashmap_bucket_qsort(bucket, lo, p);
+        Hashmap_bucket_qsort(bucket, p + 1, hi);
+    }      
+}
+
+
+
 Hashmap *Hashmap_create(Hashmap_compare compare, Hashmap_hash hash)
 {
     Hashmap *map = calloc(1, sizeof(Hashmap));
@@ -74,7 +104,7 @@ void Hashmap_destroy(Hashmap *map)
     }
 }
 
-static inline HashmapNode *Hashmap_node_create(int hash, void *key, void *data)
+static inline HashmapNode *Hashmap_node_create(uint32_t hash, void *key, void *data)
 {
     check(key != NULL, "Empty key");
     check(data != NULL, "Empty data");
@@ -118,36 +148,6 @@ error:
     return NULL;
 }
 
-
-void Hashmap_bucket_qsort(Hashmap *map, DArray *bucket, int lo, int hi)
-{
-    if (lo < hi) {
-        int p = Hashmap_bucket_qsort_partition(map, bucket, lo, hi);
-        Hashmap_bucket_qsort(map, bucket, lo, p);
-        Hashmap_bucket_qsort(map, bucket, p + 1, hi);
-    }      
-}
-
-int Hashmap_bucket_qsort_partition(Hashmap *map, DArray *bucket, int lo, int hi)
-{
-    HashmapNode **nodes = (HashmapNode **) bucket->contents;
-
-    HashmapNode *pivot = nodes[lo];
-
-    int i = lo - 1;
-    int j = hi + 1;
-    while (1) {
-        do --j; while(map->compare(nodes[j]->key, pivot->key) > 0);    
-        do ++i; while(map->compare(nodes[i]->key, pivot->key) < 0);
-        if (i < j) {
-            DArray_swap(bucket, i, j);
-        } else {
-            return j;
-        }
-    }
-}
-
-
 int Hashmap_set(Hashmap *map, void *key, void *data)
 {
 
@@ -161,7 +161,7 @@ int Hashmap_set(Hashmap *map, void *key, void *data)
 
     HashmapNode *node = Hashmap_node_create(hash, key, data);
     DArray_push(bucket, node);
-    Hashmap_bucket_qsort(map, bucket, 0, bucket->end - 1);
+    Hashmap_bucket_qsort(bucket, 0, bucket->end - 1);
     check_mem(node);
 
     return 0;
@@ -202,14 +202,14 @@ static inline int Hashmap_get_node(Hashmap *map, uint32_t hash, DArray *bucket, 
             return -1;
         }
         
-        int rc = map->compare(to_find, node->key);
+        //int rc = map->compare(to_find, node->key);
 
-        if (rc < 0) {
+        if (hash < node->hash) {
             high = middle - 1;
-        } else if (rc > 0) {
+        } else if (hash > node->hash) {
             low = middle + 1;
         } else {
-            return node->hash == hash ? middle : -1;
+            return (node->hash == hash && map->compare(to_find, node->key) == 0) ? middle : -1;
         }
     }
     return -1;
@@ -282,7 +282,7 @@ void *Hashmap_delete(Hashmap *map, void *key)
         DArray_set(bucket, i, ending);
     }
 
-    Hashmap_bucket_qsort(map, bucket, 0, bucket->end - 1);
+    Hashmap_bucket_qsort(bucket, 0, bucket->end - 1);
 
     return data;
-}    
+}        

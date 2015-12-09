@@ -35,7 +35,7 @@ int Hashmap_traverse(Hashmap *map, Hashmap_traverse_cb traverse_cb);
 
 void *Hashmap_delete(Hashmap *map, void *key);
 
-void Hashmap_bucket_sort(Hashmap *map, DArray *bucket);
-int Hashmap_bucket_qsort_partition(Hashmap *map, DArray *bucket, int lo, int hi);
+//void Hashmap_bucket_sort(Hashmap *map, DArray *bucket);
+//int Hashmap_bucket_qsort_partition(Hashmap *map, DArray *bucket, int lo, int hi);
 
 #endif
