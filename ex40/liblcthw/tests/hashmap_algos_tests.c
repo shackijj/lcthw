@@ -89,7 +89,6 @@ enum { ALGO_FNV1A, ALGO_ADLER32, ALGO_DJB, ALGO_JENKINS, ALGO_PJW };
 int gen_keys(DArray *keys, int num_keys)
 {
     int i = 0;
-    int result = -1;
     FILE *urand = fopen("/dev/urandom", "r");
     check(urand != NULL, "Failed to open /dev/urandom.");
 
@@ -107,13 +106,12 @@ int gen_keys(DArray *keys, int num_keys)
         DArray_push(keys, bstrcpy(key));
     }
 
-    result = 0;
+    bsclose(stream);
+    fclose(urand);
 
+    return 0;
 error:
-    if(key) bdestroy(key);
-    if(stream) bsclose(stream);
-    if(urand) fclose(urand);
-    return result;
+    return -1;
 }
 
 void destroy_keys(DArray *keys)
