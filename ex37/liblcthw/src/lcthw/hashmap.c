@@ -74,7 +74,7 @@ void Hashmap_destroy(Hashmap *map)
     }
 }
 
-static inline HashmapNode *Hashmap_node_create(int hash, void *key, void *data)
+static inline HashmapNode *Hashmap_node_create(uint32_t hash, void *key, void *data)
 {
     check(key != NULL, "Empty key");
     check(data != NULL, "Empty data");
@@ -137,8 +137,8 @@ int Hashmap_bucket_qsort_partition(Hashmap *map, DArray *bucket, int lo, int hi)
     int i = lo - 1;
     int j = hi + 1;
     while (1) {
-        do --j; while(map->compare(nodes[j]->key, pivot->key) > 0);    
-        do ++i; while(map->compare(nodes[i]->key, pivot->key) < 0);
+        do --j; while(nodes[j]->hash > pivot->hash);    
+        do ++i; while(nodes[i]->hash < pivot->hash);
         if (i < j) {
             DArray_swap(bucket, i, j);
         } else {
@@ -202,11 +202,11 @@ static inline int Hashmap_get_node(Hashmap *map, uint32_t hash, DArray *bucket, 
             return -1;
         }
         
-        int rc = map->compare(to_find, node->key);
+        //int rc = map->compare(to_find, node->key);
 
-        if (rc < 0) {
+        if (hash < node->hash) {
             high = middle - 1;
-        } else if (rc > 0) {
+        } else if (hash > node->hash) {
             low = middle + 1;
         } else {
             return node->hash == hash ? middle : -1;
