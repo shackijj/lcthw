@@ -120,22 +120,27 @@ static inline BSTreeNode *BSTree_getnode(BSTree *map, BSTreeNode *node, void *ke
 {
     //int cmp = map->compare(node->key, key);
 
-    if(node->hash == hash && map->compare(node->key, key) == 0) {
-        return node;
-    } else if (node->hash < hash) {
-        if(node->left) {
-            return BSTree_getnode(map, node->left, key, hash);
+    BSTreeNode *current = node;
+
+    while(current != NULL) {
+
+        if(current->hash == hash && map->compare(current->key, key) == 0) {
+            return current;
+        } else if (current->hash < hash) {
+            if (current->left) {
+                current = current->left;
+            } else {
+                return NULL;
+            }
         } else {
-            return NULL;
-        }
-    } else {
-        if(node->right) {
-            return BSTree_getnode(map, node->right, key, hash);
-        } else {
-            return NULL;
+            if (current->right) {
+                current = current->right;
+            } else {
+                return NULL;
+            }
         }
     }
-    
+        
     return NULL;
 }
 
