@@ -1,22 +1,28 @@
 #ifndef _lcthw_stack_h
 #define _lcthw_stack_h
 
-#include <lcthw/list.h>
+#include <lcthw/darray.h>
 
-typedef struct List Stack;
+#define STACK_SIZE 30
 
-#define Stack_create() (List_create())
+typedef struct DArray Stack;
 
-#define Stack_destroy(LIST) (List_destroy(LIST))
+typedef struct StackValue {
+    void *value;
+} StackValue;
 
-#define Stack_push(LIST, NODE) (List_unshift(LIST, NODE))
+#define Stack_create() (DArray_create(sizeof(char *), STACK_SIZE))
 
-#define Stack_pop(LIST) (List_shift(LIST))
+#define Stack_destroy(S) (DArray_destroy(S))
 
-#define Stack_peek(LIST) (List_first(LIST))
+#define Stack_push(S, NODE) (DArray_push(S, NODE))
 
-#define Stack_count(LIST) (List_count(LIST))
+#define Stack_pop(S) (DArray_pop(S))
 
-#define STACK_FOREACH(LIST, CUR) LIST_FOREACH(LIST, first, next, CUR)
+#define Stack_peek(S) (DArray_last(S))
 
+#define Stack_count(S) (DArray_count(S))
+
+#define STACK_FOREACH(S, CUR) int SC = 0; StackValue H = {.value=S->contents[0]}; StackValue *CUR = &H;\
+    for(SC = 0; i < DArray_end(S); CUR->value=S->contents[++SC])
 #endif
