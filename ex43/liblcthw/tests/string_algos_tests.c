@@ -2,11 +2,18 @@
 #include <lcthw/string_algos.h>
 #include <lcthw/bstrlib.h>
 #include <time.h>
+#include <lcthw/stats.h>
 
 struct tagbstring IN_STR = bsStatic("I have ALPHA beta ALPHA and oranges ALPHA");
 struct tagbstring ALPHA = bsStatic("ALPHA");
 const int TEST_TIME = 1;
 struct bstrList *list = NULL;
+Stats *find_stats = NULL;
+Stats *binstr_stats = NULL;
+Stats *scan_stats = NULL;
+
+#define NUM_REPEATS 10
+
 
 char *test_find_and_scan()
 {
@@ -71,6 +78,11 @@ char *test_binstr_performance()
 
     debug("BINSTR COUNT: %lu, END TIME: %d, OPS: %f",
             find_count, (int)elapsed, (double)find_count / elapsed);
+
+    if(binstr_stats) {
+        Stats_sample(binstr_stats, find_count);
+    }
+
     return NULL;
 }
 
@@ -97,6 +109,10 @@ char *test_find_performance()
 
     debug("FIND COUNT: %lu, END TIME: %d, OPS: %f",
             find_count, (int)elapsed, (double)find_count / elapsed);
+
+    if(find_stats) {
+        Stats_sample(find_stats, find_count);
+    }
 
     return NULL;
 }
@@ -132,10 +148,40 @@ char *test_scan_performance()
 
     StringScanner_destroy(scan);
 
+    if(scan_stats) {
+        Stats_sample(scan_stats, find_count);
+    }
+
     return NULL;
 }
 
+char *performance_test()
+{
+    binstr_stats = Stats_create();
+    scan_stats = Stats_create();
+    find_stats = Stats_create();
 
+    int i = 0;
+
+    for (i = 0; i < NUM_REPEATS; i++) {
+        test_scan_performance();
+        test_find_performance();
+        test_binstr_performance();
+    }
+
+    log_info("-------- binstr --------");
+    Stats_dump(binstr_stats);
+    log_info("-------- scan ----------");
+    Stats_dump(scan_stats);
+    log_info("-------- find ----------");
+    Stats_dump(find_stats);
+
+    free(binstr_stats);
+    free(scan_stats);
+    free(find_stats);
+    
+    return NULL;
+}
 char *all_tests()
 {
     mu_suite_start();
@@ -143,6 +189,10 @@ char *all_tests()
     mu_run_test(test_find_and_scan);
     init_bstrList();
     //this is an idiom for commenting out sections of code
+#ifdef STAT_PERF
+    mu_run_test(performance_test);
+#endif
+
 #if 0
     mu_run_test(test_scan_performance);
     mu_run_test(test_find_performance);
