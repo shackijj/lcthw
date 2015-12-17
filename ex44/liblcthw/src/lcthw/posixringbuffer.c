@@ -16,10 +16,14 @@ PosixRingBuffer *PosixRingBuffer_create(int length)
     buffer->length = length + 1;
     buffer->start = 0;
     buffer->end = 0;
-    buffer->buffer = (char *)mmap(NULL, buffer->length,
+
+    buffer->buffer = calloc(buffer->length, 1);
+    check_mem(buffer->buffer);
+
+    buffer->ul_buffer = (char *)mmap(buffer->buffer, 4096,
         PROT_READ|PROT_WRITE, MAP_ANON|MAP_SHARED, -1, 0);
 
-    check(buffer->buffer != MAP_FAILED, "mmap failed.");
+    check(buffer->ul_buffer != MAP_FAILED, "mmap failed.");
     return buffer;
 
 error:

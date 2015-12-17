@@ -5,6 +5,7 @@
 
 typedef struct {
     char *buffer;
+    char *ul_buffer;
     int length;
     int start;
     int end;
