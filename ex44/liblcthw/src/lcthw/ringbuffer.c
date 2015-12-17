@@ -5,16 +5,24 @@
 #include <string.h>
 #include <lcthw/dbg.h>
 #include <lcthw/ringbuffer.h>
+#include <sys/mman.h>
 
 RingBuffer *RingBuffer_create(int length)
 {
     RingBuffer *buffer = calloc(1, sizeof(RingBuffer));
+    check_mem(buffer);
+
     buffer->length  = length + 1;
     buffer->start = 0;
     buffer->end = 0;
+
     buffer->buffer = calloc(buffer->length, 1);
+    check_mem(buffer);
 
     return buffer;
+error:
+    if(buffer) free(buffer);
+    return NULL;    
 }
 
 void RingBuffer_destroy(RingBuffer *buffer)
@@ -35,6 +43,8 @@ int RingBuffer_write(RingBuffer *buffer, char *data, int length)
             "Not enough space: %d request, %d available",
             RingBuffer_available_data(buffer), length);
 
+    check(RingBuffer_ends_at(buffer) + length <= buffer->buffer + buffer->length,
+        "Write out of buffer.");
     void *result = memcpy(RingBuffer_ends_at(buffer), data, length);
     check(result != NULL, "Failed to write data into buffer.");
 
@@ -51,6 +61,8 @@ int RingBuffer_read(RingBuffer *buffer, char *target, int amount)
             "Not enough in the buffer: has %d, needs %d",
             RingBuffer_available_data(buffer), amount);
 
+    check(RingBuffer_starts_at(buffer) + amount <= buffer->buffer + buffer->length, 
+        "Reading outside buffer."); 
     void *result = memcpy(target, RingBuffer_starts_at(buffer), amount);
     check(result != NULL, "Failed to write buffer into data.");
 
