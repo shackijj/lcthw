@@ -1,6 +1,7 @@
 #include "minunit.h"
 #include <lcthw/posixringbuffer.h>
 #include <string.h>
+#include <time.h>
 
 #define BUFFER_LEN 15
 
@@ -76,35 +77,43 @@ char *test_posix_destroy()
     return NULL;
 }
 
+
 char *test_fuzzing()
 {
     // data 99\0 = 8 * 100 = 800 chars
-    PosixRingBuffer *buffer = PosixRingBuffer_create(800);
+    PosixRingBuffer *buffer = PosixRingBuffer_create(1024);
     int i = 0;
     int rc = 0;
-    bstring numbers[100] = {NULL};    
+    bstring chunk_w, chunk_r;
+
+    srand((unsigned int)time(NULL));
+
+    FILE *urand = fopen("/dev/urandom", "r");  
+    check(urand != NULL, "Failed to open /dev/random.");
+
+    struct bStream *stream = bsopen((bNread)fread, urand);  
+
+    chunk_w = bfromcstr("");
 
     for(i = 0; i < 100; i++) {
 
-        numbers[i] = bformat("data %d", i);
+        int num = rand();
+        rc = bsread(chunk_w, stream, num % 20);
 
-        rc = PosixRingBuffer_write(buffer, bdata(numbers[i]), blength(numbers[i]));
-        mu_assert(rc == blength(numbers[i]), "Can't write to buffer");
+        rc = PosixRingBuffer_write(buffer, bdata(chunk_w), blength(chunk_w));
+        mu_assert(rc == blength(chunk_w), "Can't write to buffer");
+  
+        chunk_r = PosixRingBuffer_gets(buffer, 20);
+        debug("Chunk is: %s", bdata(chunk_r));           
+
+        bdestroy(chunk_r);
     }
 
-    bstring test;
-
-    for(i = 0; i < 100; i++) {
-
-        test = PosixRingBuffer_gets(buffer, blength(numbers[i]));
-        mu_assert(biseq(test, numbers[i]) == 1, "Wrong data in buffer.");
-
-        bdestroy(test);
-        bdestroy(numbers[i]);
-    }
-
+    bdestroy(chunk_w);
     PosixRingBuffer_destroy(buffer);
  
+    return NULL;
+error:
     return NULL;               
 }
 

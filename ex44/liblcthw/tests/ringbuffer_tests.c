@@ -1,5 +1,6 @@
 #include "minunit.h"
 #include <lcthw/ringbuffer.h>
+#include <lcthw/posixringbuffer.h>
 #include <string.h>
 #include <time.h>
 
@@ -9,6 +10,8 @@ char *test1 = "test1";
 char *test2 = "test2";
 char *test3 = "test3";
 RingBuffer *buff = NULL;
+
+bstring rand_data[100] = {NULL};
 
 char *test_create()
 {
@@ -77,14 +80,11 @@ char *test_destroy()
     return NULL;  
 }
 
-char *test_fuzzing()
+char *init_fuzzing()
 {
-    // data 99\0 = 8 * 100 = 800 chars
-    RingBuffer *buffer = RingBuffer_create(1024);
+    bstring chunk_w;
     int i = 0;
     int rc = 0;
-    bstring chunk_w, chunk_r;
-
     srand((unsigned int)time(NULL));
 
     FILE *urand = fopen("/dev/urandom", "r");  
@@ -98,22 +98,78 @@ char *test_fuzzing()
 
         int num = rand();
         rc = bsread(chunk_w, stream, num % 20);
+        rand_data[i] = bstrcpy(chunk_w);
 
-        rc = RingBuffer_write(buffer, bdata(chunk_w), blength(chunk_w));
-        mu_assert(rc == blength(chunk_w), "Can't write to buffer");
+    }
+    
+    bdestroy(chunk_w);
+    bsclose(stream);
+    fclose(urand);
+        
+
+    return NULL;
+error:
+    return NULL;               
+}
+
+char *cleanup_fuzzing()
+{
+    int i = 0;
+    for(i = 0; i < 100; i++) {
+        bdestroy(rand_data[i]);
+    }
+
+    return NULL;
+}
+
+char *test_fuzzing()
+{
+    // data 99\0 = 8 * 100 = 800 chars
+    RingBuffer *buffer = RingBuffer_create(1024);
+    mu_assert(buffer != NULL, "Can't create buffer");
+    int i = 0;
+    int rc = 0;
+    bstring chunk_r;
+
+    for(i = 0; i < 100; i++) {
+
+        rc = RingBuffer_write(buffer, bdata(rand_data[i]), blength(rand_data[i]));
+        mu_assert(rc == blength(rand_data[i]), "Can't write to buffer");
   
-        chunk_r = RingBuffer_gets(buffer, 10);
-        debug("Chunk is: %s", bdata(chunk_r));           
+        chunk_r = RingBuffer_gets(buffer, 20);
 
         bdestroy(chunk_r);
     }
 
-    bdestroy(chunk_w);
     RingBuffer_destroy(buffer);
  
     return NULL;
-error:
-    return NULL;               
+}
+
+
+
+char *test_posix_fuzzing()
+{
+    // data 99\0 = 8 * 100 = 800 chars
+    PosixRingBuffer *buffer = PosixRingBuffer_create(1024);
+    mu_assert(buffer != NULL, "Can't create buffer");
+    int i = 0;
+    int rc = 0;
+    bstring chunk_r;
+
+    for(i = 0; i < 100; i++) {
+
+        rc = PosixRingBuffer_write(buffer, bdata(rand_data[i]), blength(rand_data[i]));
+        mu_assert(rc == blength(rand_data[i]), "Can't write to buffer");
+  
+        chunk_r = PosixRingBuffer_gets(buffer, 20);
+
+        bdestroy(chunk_r);
+    }
+
+    PosixRingBuffer_destroy(buffer);
+ 
+    return NULL;
 }
 
 char *all_tests()
@@ -125,7 +181,12 @@ char *all_tests()
     mu_run_test(test_puts_gets);
     mu_run_test(test_destroy);
 
+    init_fuzzing();
+
+    mu_run_test(test_posix_fuzzing);
     mu_run_test(test_fuzzing);
+
+    cleanup_fuzzing();
 
     return NULL;
 }
