@@ -5,14 +5,14 @@
 
 typedef struct {
     char *buffer;
-    char *ul_buffer;
+    void *mapping;
     int length;
     int start;
     int end;
+    size_t size;
 } PosixRingBuffer;
 
-
-PosixRingBuffer *PosixRingBuffer_create(int length);
+PosixRingBuffer *PosixRingBuffer_create(size_t ring_size);
 
 void PosixRingBuffer_destroy(PosixRingBuffer *buffer);
 
@@ -29,6 +29,8 @@ int PosixRingBuffer_available_data(PosixRingBuffer *buffer);
 int PosixRingBuffer_available_space(PosixRingBuffer *buffer);
 
 bstring PosixRingBuffer_gets(PosixRingBuffer *buffer, int amount);
+
+#define SYSPAGE_M 2
 
 #define PosixRingBuffer_available_data(B) (((B)->end + 1) % (B)->length - (B)->start - 1)
 

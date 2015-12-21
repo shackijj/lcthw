@@ -133,6 +133,7 @@ char *test_fuzzing()
 
     for(i = 0; i < 100; i++) {
 
+        debug("REGULAR Chunk: %s", bdata(rand_data[i]));
         rc = RingBuffer_write(buffer, bdata(rand_data[i]), blength(rand_data[i]));
         mu_assert(rc == blength(rand_data[i]), "Can't write to buffer");
   
@@ -158,7 +159,7 @@ char *test_posix_fuzzing()
     bstring chunk_r;
 
     for(i = 0; i < 100; i++) {
-
+        debug("POSIX Chunk: %s", bdata(rand_data[i]));
         rc = PosixRingBuffer_write(buffer, bdata(rand_data[i]), blength(rand_data[i]));
         mu_assert(rc == blength(rand_data[i]), "Can't write to buffer");
   

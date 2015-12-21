@@ -81,7 +81,7 @@ char *test_posix_destroy()
 char *test_fuzzing()
 {
     // data 99\0 = 8 * 100 = 800 chars
-    PosixRingBuffer *buffer = PosixRingBuffer_create(1024);
+    PosixRingBuffer *buffer = PosixRingBuffer_create(16);
     int i = 0;
     int rc = 0;
     bstring chunk_w, chunk_r;
@@ -108,10 +108,12 @@ char *test_fuzzing()
 
         bdestroy(chunk_r);
     }
-
+   
+    bsclose(stream);
     bdestroy(chunk_w);
     PosixRingBuffer_destroy(buffer);
- 
+    fclose(urand); 
+
     return NULL;
 error:
     return NULL;               

@@ -3,29 +3,32 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <lcthw/dbg.h>
 #include <lcthw/posixringbuffer.h>
 #include <sys/mman.h>
 
-
-PosixRingBuffer *PosixRingBuffer_create(int length)
+PosixRingBuffer *PosixRingBuffer_create(size_t ring_size)
 {
     PosixRingBuffer *buffer = calloc(1, sizeof(PosixRingBuffer));
     check_mem(buffer);
 
-    buffer->length = length + 1;
     buffer->start = 0;
     buffer->end = 0;
+    // initial size of buffer
+    buffer->size = ring_size;
+    buffer->length = (int) sysconf(_SC_PAGE_SIZE) * SYSPAGE_M;    
 
-    buffer->buffer = calloc(buffer->length, 1);
-    check_mem(buffer->buffer);
-
-
-
-    buffer->ul_buffer = (char *)mmap(p, 4096,
+    // the underlying buffer‘s length must then equal some multiple of the system’s page size.
+    // Ok, then multiple of 2 
+    buffer->mapping = mmap(NULL, buffer->length, 
         PROT_READ|PROT_WRITE, MAP_ANON|MAP_SHARED, -1, 0);
+    check(buffer->mapping != MAP_FAILED, "mmap failed.");
 
-    check(buffer->ul_buffer != MAP_FAILED, "mmap failed.");
+    buffer->buffer =  (char *)mmap(buffer->mapping, buffer->size, 
+        PROT_READ|PROT_WRITE, MAP_ANON|MAP_SHARED, -1, 0);    
+
+    check(buffer->mapping != MAP_FAILED, "mmap failed.");
 
     return buffer;
 error:
@@ -35,8 +38,8 @@ error:
 void PosixRingBuffer_destroy(PosixRingBuffer *buffer)
 {
     if(buffer) {
-        munmap(buffer->buffer, buffer->length);
-        free(buffer->buffer);
+        munmap(buffer->buffer, buffer->size);
+        munmap(buffer->mapping, sysconf(_SC_PAGE_SIZE) * SYSPAGE_M);
         free(buffer);
     }
 }
