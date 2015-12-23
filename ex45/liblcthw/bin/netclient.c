@@ -21,10 +21,6 @@ TODO
 3. Make it read whole web page http://c.learncodethehardway.org/book/ex45.html
    Now it fails with 
 
-[ERROR] (src/lcthw/ringbuffer.c:82 function: RingBuffer_gets errno: None) Need more than 0 for gets, you gave: -1
-[ERROR] (bin/netclient.c:93 function: write_some errno: None) Failed to get from the buffer.
-[DEBUG] bin/netclient.c:197: failed to write to stdout.
-
 */
 struct tagbstring NL = bsStatic("\n");
 struct tagbstring CLRF = bsStatic("\r\n");
@@ -99,12 +95,22 @@ error:
     return -1;
 }
 
-int write_some(RingBuffer *buffer, int fd, int is_socket, int remove_flag)
+int write_some(RingBuffer *buffer, bstring quit_cmd, int fd, int is_socket, int remove_flag)
 {
     int rc = 0;
     bstring data = RingBuffer_get_all(buffer);
-
     check(data != NULL, "Failed to get from the buffer.");
+
+    if (is_socket) {
+        rc = biseq(quit_cmd, data);
+
+        if (rc == 1) {
+            log_info("Ok, Quit!"); 
+            bdestroy(data);
+            return -2;
+        }
+    }
+
     if (remove_flag == 1) {
         check(bfindreplace(data, &NL, &CLRF, 0) == BSTR_OK, "Failed to replace NL.");
     } else {
@@ -113,8 +119,9 @@ int write_some(RingBuffer *buffer, int fd, int is_socket, int remove_flag)
 
     if(is_socket) {
         // Send data from buffer to connection recipient
-        // Socket should be in connected state
+        // Socket should be in connect
         rc = send(fd, bdata(data), blength(data), 0);
+
     } else {
         // Write data to file.
         rc = write(fd, bdata(data), blength(data));
@@ -122,7 +129,6 @@ int write_some(RingBuffer *buffer, int fd, int is_socket, int remove_flag)
 
     check(rc == blength(data), "Failed to write everything to fd: %d", fd);
     bdestroy(data);
-
     return rc;
 
 error:
@@ -144,6 +150,8 @@ int main(int argc, char *argv[])
     char *host = argv[1];
     char *port = argv[2];
 
+    bstring quit_cmd = bfromcstr("quit()\n");
+
     while((rc = getopt(argc, argv, "r:")) != -1) {
        switch (rc) {
             case 'r':
@@ -158,8 +166,8 @@ int main(int argc, char *argv[])
        }
     }
 
-    RingBuffer *in_rb = RingBuffer_create(1024 * 10);
-    RingBuffer *sock_rb = RingBuffer_create(1024 * 10);
+    RingBuffer *in_rb = RingBuffer_create(1024 * 50);
+    RingBuffer *sock_rb = RingBuffer_create(1024 * 50);
     // Returns socket
     socket = client_connect(host, port);
     check(socket >= 0, "connect to %s:%s failed.", host, port);
@@ -207,16 +215,22 @@ int main(int argc, char *argv[])
         // Get data from socket buffer and write it to stdout
         // while sock_rb not empty
         while(!RingBuffer_empty(sock_rb)) {
-            rc = write_some(sock_rb, 1, 0, remove_flag);
+            rc = write_some(sock_rb, quit_cmd, 1, 0, remove_flag);
             check_debug(rc != -1, "failed to write to stdout.");
         }
         // Like upper loop, but write to socket.
         while(!RingBuffer_empty(in_rb)) {
-            rc = write_some(in_rb, socket, 1, remove_flag);
+            rc = write_some(in_rb, quit_cmd, socket, 1, remove_flag);
             check_debug(rc != -1, "Failed to write to socket.");
+            if (rc == -2) goto exit;
         }
     }
 
+exit:
+    RingBuffer_destroy(in_rb);
+    RingBuffer_destroy(sock_rb);    
+    shutdown(socket, 3);
+    bdestroy(quit_cmd);
     return 0;
 
 error:
