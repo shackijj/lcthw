@@ -85,6 +85,24 @@ char *test_traverse()
     return NULL;
 }
 
+char *test_collect()
+{
+    DArray *result_da = TSTree_collect(node, "TEST", strlen("TEST"));
+    log_info("Length is %d", DArray_count(result_da));
+    mu_assert(DArray_count(result_da) == 2, "Wrong count on collect");
+
+    char *res = DArray_get(result_da, 0);
+    mu_assert(strcmp(res, "T") == 0, "First key wrong.");
+    
+    res = DArray_get(result_da, 1);
+    mu_assert(strcmp(res, "TEST") == 0, "Second key wrong.");
+
+    DArray_clear_destroy(result_da);
+
+    return NULL;
+}
+
+
 char *test_destroy()
 {
     TSTree_destroy(node);
@@ -99,6 +117,7 @@ char * all_tests() {
     mu_run_test(test_search_exact);
     mu_run_test(test_search_prefix);
     mu_run_test(test_traverse);
+    mu_run_test(test_collect);
     mu_run_test(test_destroy);
 
     return NULL;

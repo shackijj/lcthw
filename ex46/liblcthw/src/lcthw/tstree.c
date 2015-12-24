@@ -7,6 +7,10 @@
 static inline TSTree *TSTree_insert_base(TSTree *root, TSTree *node,
     const char *key, size_t len, void *value)
 {
+
+    check(key != NULL, "Key can't be NULL");
+    check(len > 0, "Len can't be 0");
+
     if(node == NULL) {
         node = (TSTree *) calloc(1, sizeof(TSTree));
         
@@ -31,6 +35,9 @@ static inline TSTree *TSTree_insert_base(TSTree *root, TSTree *node,
     }
 
     return node;
+
+error:
+    return NULL;
 }
 
 TSTree *TSTree_insert(TSTree *node, const char *key, size_t len, void *value)
@@ -40,6 +47,8 @@ TSTree *TSTree_insert(TSTree *node, const char *key, size_t len, void *value)
 
 void *TSTree_search(TSTree *root, const char *key, size_t len)
 {
+    check(root != NULL, "root can't be NULL.");
+
     TSTree *node = root;
     size_t i = 0;
 
@@ -59,10 +68,16 @@ void *TSTree_search(TSTree *root, const char *key, size_t len)
     } else {
         return NULL;
     }
+
+error:
+    return NULL;
 }
 
 void *TSTree_search_prefix(TSTree *root, const char *key, size_t len)
 {
+    check(root != NULL, "root can't be NULL.");
+    check(len <= strlen(key), "Length more than actual key length.");
+
     if(len == 0) return NULL;
 
     TSTree *node = root;
@@ -90,6 +105,54 @@ void *TSTree_search_prefix(TSTree *root, const char *key, size_t len)
     }
 
     return node ? node->value : NULL;
+
+error:
+    return NULL;
+}
+
+DArray *TSTree_collect(TSTree *root, const char *key, size_t len)
+{
+    check(strlen(key) <= len, "Len more than length of key"); 
+
+    if (len == 0) return 0;
+    DArray *result = DArray_create(sizeof(void *), 10);
+    
+    TSTree *node = root;
+    
+    
+
+    size_t i = 0;
+
+    while(i < len && node) {
+        if(key[i] < node->splitchar) {
+            node = node->low;
+        } else if(key[i] == node->splitchar) {
+            i++;
+            if (i <= len) {
+
+                if(node->value) {
+                    // We can use bstrlib instead strncpy but we know exactly size of 
+                    // found_key and have check for avoiding Segfault.
+                    char *found_key = malloc(i + 1);
+                    strncpy(found_key, key, i);
+                    found_key[i] = '\0';                    
+
+                    debug("Key %s found", found_key);
+                    DArray_push(result, found_key);
+                }
+
+                node = node->equal;
+
+            } else {
+                node = node->high;
+            }
+        }
+    }
+    
+    return result;   
+
+error:
+    return NULL;            
 }
 
 void TSTree_traverse(TSTree *node, TSTree_traverse_cb cb, void *data)
