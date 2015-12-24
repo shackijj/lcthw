@@ -112,15 +112,13 @@ error:
 
 DArray *TSTree_collect(TSTree *root, const char *key, size_t len)
 {
-    check(strlen(key) <= len, "Len more than length of key"); 
+    check(key != NULL, "Key can't be NULL"); 
 
     if (len == 0) return 0;
     DArray *result = DArray_create(sizeof(void *), 10);
     
     TSTree *node = root;
     
-    
-
     size_t i = 0;
 
     while(i < len && node) {
@@ -137,7 +135,6 @@ DArray *TSTree_collect(TSTree *root, const char *key, size_t len)
                     strncpy(found_key, key, i);
                     found_key[i] = '\0';                    
 
-                    debug("Key %s found", found_key);
                     DArray_push(result, found_key);
                 }
 

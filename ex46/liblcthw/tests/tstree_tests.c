@@ -19,7 +19,7 @@ struct tagbstring test3 = bsStatic("TSET");
 struct tagbstring test4 = bsStatic("T");
 
 char *test_insert()
-{
+{    
     node = TSTree_insert(node, bdata(&test1), blength(&test1), valueA);
     mu_assert(node != NULL, "Failed to insert into tst.");
 
@@ -87,7 +87,7 @@ char *test_traverse()
 
 char *test_collect()
 {
-    DArray *result_da = TSTree_collect(node, "TEST", strlen("TEST"));
+    DArray *result_da = TSTree_collect(node, "TEST-", strlen("TEST-"));
     log_info("Length is %d", DArray_count(result_da));
     mu_assert(DArray_count(result_da) == 2, "Wrong count on collect");
 
