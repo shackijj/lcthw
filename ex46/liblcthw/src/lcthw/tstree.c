@@ -17,8 +17,6 @@ static inline char *reverse_string(const char *string, size_t len)
 
     rev_str[len] = '\0';
 
-    log_info("String is %s, revert is %s", string, rev_str);
-
     return rev_str;       
 }
 
