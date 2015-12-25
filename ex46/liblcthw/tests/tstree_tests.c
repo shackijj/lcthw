@@ -18,6 +18,11 @@ struct tagbstring test2 = bsStatic("TEST2");
 struct tagbstring test3 = bsStatic("TSET");
 struct tagbstring test4 = bsStatic("T");
 
+struct tagbstring test_sfx = bsStatic("learncodethehardway.org");
+struct tagbstring test_sfx1 = bsStatic("c.learncodethehardway.org");
+struct tagbstring test_sfx2 = bsStatic("py.learncodethehardway.org");
+
+
 char *test_insert()
 {    
     node = TSTree_insert(node, bdata(&test1), blength(&test1), valueA);
@@ -110,6 +115,40 @@ char *test_destroy()
     return NULL;
 }
 
+char *test_insert_suffix()
+{
+    node = TSTree_insert_suffix(node, bdata(&test_sfx), blength(&test_sfx), reverse);
+    mu_assert(node != NULL, "Initial insert suffix returned NULL.");  
+
+    node = TSTree_insert_suffix(node, bdata(&test_sfx1), blength(&test_sfx1), valueA);
+    mu_assert(node != NULL, "First insert suffix returned NULL.");  
+
+    node = TSTree_insert_suffix(node, bdata(&test_sfx2), blength(&test_sfx2), valueB);
+    mu_assert(node != NULL, "Second insert suffix returned NULL.");  
+
+    return NULL;
+}
+
+char *test_search_suffix()
+{
+    void *res = TSTree_search_suffix(node, bdata(&test_sfx1), blength(&test_sfx1));
+    debug("result: %p, expected: %p", res, valueA);
+    mu_assert(res == valueA, "Got wrong valueA by prefix.");
+
+    res = TSTree_search_suffix(node, bdata(&test_sfx2), blength(&test_sfx2));
+    debug("result: %p, expected: %p", res, valueB);
+    mu_assert(res == valueB, "Got wrong valueA by prefix.");
+
+    res = TSTree_search_suffix(node, ".org", strlen(".org"));
+    mu_assert(res != NULL, "Should find for short suffix");
+
+    res = TSTree_search_suffix(node, "*.learncodethehardway.org", strlen("*.learncodethehardway.org"));
+    mu_assert(res != NULL, "Should find for partitial suffix");
+    mu_assert(res == reverse, "Got wrong reverse value.");
+
+    return NULL;
+}
+
 char * all_tests() {
     mu_suite_start();
 
@@ -118,6 +157,10 @@ char * all_tests() {
     mu_run_test(test_search_prefix);
     mu_run_test(test_traverse);
     mu_run_test(test_collect);
+
+    mu_run_test(test_insert_suffix);
+    mu_run_test(test_search_suffix);   
+
     mu_run_test(test_destroy);
 
     return NULL;

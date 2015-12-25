@@ -16,9 +16,13 @@ void *TSTree_search(TSTree *root, const char *key, size_t len);
 
 void *TSTree_search_prefix(TSTree *root, const char *key, size_t len);
 
+void *TSTree_search_suffix(TSTree *root, const char *key, size_t len);
+
 typedef void (*TSTree_traverse_cb)(void *value, void *data);
 
 TSTree *TSTree_insert(TSTree *node, const char *key, size_t len, void *value);
+
+TSTree *TSTree_insert_suffix(TSTree *node, const char *key, size_t len, void *value);
 
 void TSTree_traverse(TSTree *node, TSTree_traverse_cb cb, void *data);
 

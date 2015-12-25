@@ -4,6 +4,24 @@
 #include <lcthw/dbg.h>
 #include <lcthw/tstree.h>
 
+static inline char *reverse_string(const char *string, size_t len)
+{   
+    char *rev_str = malloc(len + 1);
+    int i = 0;
+    int j = 0;
+
+    for(i = (int) len - 1; i > -1 ; i--) {
+        rev_str[j] = string[i];
+        j++;   
+    }
+
+    rev_str[len] = '\0';
+
+    log_info("String is %s, revert is %s", string, rev_str);
+
+    return rev_str;       
+}
+
 static inline TSTree *TSTree_insert_base(TSTree *root, TSTree *node,
     const char *key, size_t len, void *value)
 {
@@ -43,6 +61,17 @@ error:
 TSTree *TSTree_insert(TSTree *node, const char *key, size_t len, void *value)
 {
     return TSTree_insert_base(node, node, key, len, value);
+}
+
+TSTree *TSTree_insert_suffix(TSTree *node, const char *key, size_t len, void *value)
+{
+    char *revert_key = reverse_string(key, len);
+    debug("Revert key is %s", revert_key);
+
+    TSTree *result_node = TSTree_insert(node, revert_key, len, value);
+
+    free(revert_key);
+    return result_node;
 }
 
 void *TSTree_search(TSTree *root, const char *key, size_t len)
@@ -110,6 +139,17 @@ error:
     return NULL;
 }
 
+void *TSTree_search_suffix(TSTree *root, const char *key, size_t len)
+{
+    char *revert_key = reverse_string(key, len);
+
+    void *result_node = TSTree_search_prefix(root, revert_key, len);
+
+    free(revert_key);
+    
+    return result_node;  
+}
+
 DArray *TSTree_collect(TSTree *root, const char *key, size_t len)
 {
     check(key != NULL, "Key can't be NULL"); 
@@ -129,8 +169,10 @@ DArray *TSTree_collect(TSTree *root, const char *key, size_t len)
             if (i <= len) {
 
                 if(node->value) {
+                    
                     // We can use bstrlib instead strncpy but we know exactly size of 
                     // found_key and have check for avoiding Segfault.
+                    // bstrlib is kind of overkill here.
                     char *found_key = malloc(i + 1);
                     strncpy(found_key, key, i);
                     found_key[i] = '\0';                    
