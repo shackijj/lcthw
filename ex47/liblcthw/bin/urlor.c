@@ -1,5 +1,46 @@
 #include <lcthw/tstree.h>
 #include <lcthw/bstrlib.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+typedef struct Handler {
+    bstring url;
+    bstring name;
+    bstring dir;
+} Handler;
+
+bstring read_file(Handler h, const char *filename)
+{
+    int rc = 0;
+    struct bStream *stream = NULL;
+    FILE *fh = NULL;
+    long fsize = 0;
+    bstring result = NULL;
+
+    check(filename != NULL, "Filename can't be NULL.");
+
+    fh = fopen(filename, "r");
+    check(fh != NULL, "Can't open file '%s'", filename);
+
+    fseek(fh, 0, SEEK_END);
+    fsize = ftell(fh);
+    rewind(fh);
+
+    result = bfromcstr("");
+
+    stream = bsopen((bNread) fread, fh);
+    check(bsread(result, stream, fsize) == BSTR_OK, "Can't read from stream");
+
+    bsclose(stream);
+    fclose(fh);
+
+error:
+    if(stream) bsclose(stream);
+    if(fh) fclose(fh);
+    if(result) bdestroy(result);
+    return NULL;
+}
+
 
 TSTree *add_route_data(TSTree *routes, bstring line)
 {
