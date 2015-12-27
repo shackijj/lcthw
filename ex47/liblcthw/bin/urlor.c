@@ -1,3 +1,4 @@
+#include <lcthw/dbg.h>
 #include <lcthw/tstree.h>
 #include <lcthw/bstrlib.h>
 #include <stdlib.h>
@@ -7,20 +8,22 @@ typedef struct Handler {
     bstring url;
     bstring name;
     bstring dir;
+    bstring index;
 } Handler;
 
-bstring read_file(Handler h, const char *filename)
+bstring read_file(Handler *handler, bstring filename)
 {
-    int rc = 0;
+    int rc = -1;
     struct bStream *stream = NULL;
     FILE *fh = NULL;
     long fsize = 0;
     bstring result = NULL;
 
-    check(filename != NULL, "Filename can't be NULL.");
+    bstring path = bstrcpy(handler->dir);
+    check(bconcat(path, filename) == BSTR_OK, "Can't concat filename and directory."); 
 
-    fh = fopen(filename, "r");
-    check(fh != NULL, "Can't open file '%s'", filename);
+    fh = fopen(bdata(path), "r");
+    check(fh != NULL, "Can't open file '%s'", bdata(path));
 
     fseek(fh, 0, SEEK_END);
     fsize = ftell(fh);
@@ -29,15 +32,23 @@ bstring read_file(Handler h, const char *filename)
     result = bfromcstr("");
 
     stream = bsopen((bNread) fread, fh);
-    check(bsread(result, stream, fsize) == BSTR_OK, "Can't read from stream");
+    check(stream != NULL, "Can't open a stream");
 
+    rc = bsread(result, stream, fsize);
+    
+    printf("rc: %d, file: %s\n%s", rc, bdata(path), bdata(result));
+
+    bdestroy(path);
     bsclose(stream);
     fclose(fh);
+    return result;
 
 error:
+    if(path) bdestroy(path);
     if(stream) bsclose(stream);
     if(fh) fclose(fh);
     if(result) bdestroy(result);
+
     return NULL;
 }
 
@@ -45,12 +56,19 @@ error:
 TSTree *add_route_data(TSTree *routes, bstring line)
 {
     struct bstrList *data = bsplit(line, ' ');
-    check(data->qty == 2, "line '%s' does not have 2 columns",
+    check(data->qty == 4, "line '%s' does not have 4 columns",
         bdata(line));
 
+    Handler *handler = malloc(sizeof(Handler));
+
+    handler->url = bstrcpy(data->entry[0]);
+    handler->name = bstrcpy(data->entry[1]);
+    handler->dir = bstrcpy(data->entry[2]);
+    handler->index = bstrcpy(data->entry[3]); 
+   
     routes = TSTree_insert(routes, 
             bdata(data->entry[0]), blength(data->entry[0]),
-            bstrcpy(data->entry[1]));
+            handler);
 
     bstrListDestroy(data);
 
@@ -86,9 +104,11 @@ error:
     return NULL;
 }
 
-bstring match_url(TSTree *routes, bstring url)
+Handler *match_url(TSTree *routes, bstring url)
 {
-    bstring route = TSTree_search(routes, bdata(url), blength(url));
+
+    debug("url %s length %d", bdata(url), blength(url));
+    Handler *route = TSTree_search(routes, bdata(url), blength(url));
 
     if(route == NULL) {
         printf("No exact match found, trying prefix.\n");
@@ -113,23 +133,27 @@ error:
     return NULL;
 }
 
-void bdestroy_cb(void *value, void *ignored)
+void handler_destroy_cb(void *value, void *ignored)
 {
     // WTF?
     (void)ignored;
-    bdestroy((bstring)value);
+    Handler *handler = value;
+    bdestroy(handler->dir);
+    bdestroy(handler->url);
+    bdestroy(handler->name);    
+    free(handler);
 }
 
 void destroy_routes(TSTree *routes)
 {
-    TSTree_traverse(routes, bdestroy_cb, NULL);
+    TSTree_traverse(routes, handler_destroy_cb, NULL);
     TSTree_destroy(routes);
 }
 
 int main(int argc, char *argv[])
 {
     bstring url = NULL;
-    bstring route = NULL;
+    Handler *route = NULL;
     check(argc == 2, "USAGE: urlor <urlfile>");
 
     TSTree *routes = load_routes(argv[1]);
@@ -142,7 +166,9 @@ int main(int argc, char *argv[])
         route = match_url(routes, url);
 
         if(route) {
-            printf("MATCH: %s == %s\n", bdata(url), bdata(route));
+            printf("MATCH: '%s' == '%s'\n", bdata(url), bdata(route->name));
+            bstring f_content = read_file(route, route->index);
+            bdestroy(f_content);
         } else {
             printf("FAIL: %s\n", bdata(url));
         }
