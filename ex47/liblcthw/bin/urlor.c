@@ -3,12 +3,17 @@
 #include <lcthw/bstrlib.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <dlfcn.h>
+
+typedef void (*handler_fuct) ();
 
 typedef struct Handler {
     bstring url;
     bstring name;
     bstring dir;
     bstring index;
+    handler_fuct func;
+    void *lib;
 } Handler;
 
 bstring read_file(Handler *handler, bstring filename)
@@ -20,7 +25,7 @@ bstring read_file(Handler *handler, bstring filename)
     bstring result = NULL;
 
     bstring path = bstrcpy(handler->dir);
-    check(bconcat(path, filename) == BSTR_OK, "Can't concat filename and directory."); 
+    bconcat(path, filename);
 
     fh = fopen(bdata(path), "r");
     check(fh != NULL, "Can't open file '%s'", bdata(path));
@@ -41,6 +46,7 @@ bstring read_file(Handler *handler, bstring filename)
     bdestroy(path);
     bsclose(stream);
     fclose(fh);
+
     return result;
 
 error:
@@ -75,6 +81,7 @@ TSTree *add_route_data(TSTree *routes, bstring line)
     return routes;
 
 error:
+    bstrListDestroy(data);
     return NULL;
 }
 
@@ -83,6 +90,7 @@ TSTree *load_routes(const char *file)
     TSTree *routes = NULL;
     bstring line = NULL;
     FILE *routes_map = NULL;
+    int c = 0;
 
     routes_map = fopen(file, "r");
     check(routes_map != NULL, "Failed to open routes: '%s'", file);
@@ -90,6 +98,10 @@ TSTree *load_routes(const char *file)
     while((line = bgets((bNgetc)fgetc, routes_map, '\n')) != NULL ) {
         check(btrimws(line) == BSTR_OK, "Failed to trim line.");
         routes = add_route_data(routes, line);
+
+        c++;
+        log_info("%d routes added.", c);
+
         check(routes != NULL, "Failures to add route.");
         bdestroy(line);
     }
@@ -100,7 +112,7 @@ TSTree *load_routes(const char *file)
 error:
     if(routes_map) fclose(routes_map);
     if(line) bdestroy(line);
-
+    
     return NULL;
 }
 
@@ -126,10 +138,12 @@ bstring read_line(const char *prompt)
     check_debug(result != NULL, "stdin closed.");
 
     check(btrimws(result) == BSTR_OK, "Failed to trim.");
+    check(blength(result) != 0, "Got empty line");
 
     return result;
 
 error:
+    if(result) bdestroy(result);
     return NULL;
 }
 
@@ -152,6 +166,7 @@ void destroy_routes(TSTree *routes)
 
 int main(int argc, char *argv[])
 {
+    bstring f_content = NULL;
     bstring url = NULL;
     Handler *route = NULL;
     check(argc == 2, "USAGE: urlor <urlfile>");
@@ -167,8 +182,8 @@ int main(int argc, char *argv[])
 
         if(route) {
             printf("MATCH: '%s' == '%s'\n", bdata(url), bdata(route->name));
-            bstring f_content = read_file(route, route->index);
-            bdestroy(f_content);
+            f_content = read_file(route, url);
+            if(f_content) bdestroy(f_content);
         } else {
             printf("FAIL: %s\n", bdata(url));
         }
@@ -181,6 +196,7 @@ int main(int argc, char *argv[])
     return 0;
 
 error:
+    if(url) bdestroy(url);
     destroy_routes(routes);
     return 0;
 }
