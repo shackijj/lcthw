@@ -1,1 +1,1 @@
-/ Main /home/kirill index.php
+/ Main /home/kirill/learn_c/ex47/liblcthw/bin/dynamic_libs/libhello.so hello

@@ -10,58 +10,17 @@ typedef void (*handler_fuct) ();
 typedef struct Handler {
     bstring url;
     bstring name;
-    bstring dir;
-    bstring index;
+    bstring lib_file;
+    bstring func_name;
     handler_fuct func;
     void *lib;
 } Handler;
 
-bstring read_file(Handler *handler, bstring filename)
-{
-    int rc = -1;
-    struct bStream *stream = NULL;
-    FILE *fh = NULL;
-    long fsize = 0;
-    bstring result = NULL;
-
-    bstring path = bstrcpy(handler->dir);
-    bconcat(path, filename);
-
-    fh = fopen(bdata(path), "r");
-    check(fh != NULL, "Can't open file '%s'", bdata(path));
-
-    fseek(fh, 0, SEEK_END);
-    fsize = ftell(fh);
-    rewind(fh);
-
-    result = bfromcstr("");
-
-    stream = bsopen((bNread) fread, fh);
-    check(stream != NULL, "Can't open a stream");
-
-    rc = bsread(result, stream, fsize);
-    
-    printf("rc: %d, file: %s\n%s", rc, bdata(path), bdata(result));
-
-    bdestroy(path);
-    bsclose(stream);
-    fclose(fh);
-
-    return result;
-
-error:
-    if(path) bdestroy(path);
-    if(stream) bsclose(stream);
-    if(fh) fclose(fh);
-    if(result) bdestroy(result);
-
-    return NULL;
-}
-
-
 TSTree *add_route_data(TSTree *routes, bstring line)
 {
+    const char *dl_error;
     struct bstrList *data = bsplit(line, ' ');
+
     check(data->qty == 4, "line '%s' does not have 4 columns",
         bdata(line));
 
@@ -69,9 +28,16 @@ TSTree *add_route_data(TSTree *routes, bstring line)
 
     handler->url = bstrcpy(data->entry[0]);
     handler->name = bstrcpy(data->entry[1]);
-    handler->dir = bstrcpy(data->entry[2]);
-    handler->index = bstrcpy(data->entry[3]); 
-   
+    handler->lib_file = bstrcpy(data->entry[2]);
+    handler->func_name = bstrcpy(data->entry[3]); 
+
+    handler->lib = dlopen(bdata(handler->lib_file), RTLD_NOW);    
+    check(handler->lib != NULL, "Failed to open lib: %s, reason: %s", bdata(handler->lib_file), dlerror());
+
+    handler->func = (handler_fuct) dlsym(handler->lib, bdata(handler->func_name)); // locate hello fuct    
+    dl_error = dlerror();
+    check(dl_error == NULL, "Failed to locate hello function, reason: %s", dl_error);    
+
     routes = TSTree_insert(routes, 
             bdata(data->entry[0]), blength(data->entry[0]),
             handler);
@@ -98,9 +64,6 @@ TSTree *load_routes(const char *file)
     while((line = bgets((bNgetc)fgetc, routes_map, '\n')) != NULL ) {
         check(btrimws(line) == BSTR_OK, "Failed to trim line.");
         routes = add_route_data(routes, line);
-
-        c++;
-        log_info("%d routes added.", c);
 
         check(routes != NULL, "Failures to add route.");
         bdestroy(line);
@@ -152,9 +115,11 @@ void handler_destroy_cb(void *value, void *ignored)
     // WTF?
     (void)ignored;
     Handler *handler = value;
-    bdestroy(handler->dir);
+    bdestroy(handler->lib_file);
     bdestroy(handler->url);
     bdestroy(handler->name);    
+    bdestroy(handler->func_name);
+    dlclose(handler->lib);
     free(handler);
 }
 
@@ -182,8 +147,8 @@ int main(int argc, char *argv[])
 
         if(route) {
             printf("MATCH: '%s' == '%s'\n", bdata(url), bdata(route->name));
-            f_content = read_file(route, url);
-            if(f_content) bdestroy(f_content);
+            //read_file(route, url);
+            route->func();
         } else {
             printf("FAIL: %s\n", bdata(url));
         }

@@ -1,4 +1,4 @@
-CFLAGS=-g -O2 -Wall -Wextra -Isrc -lm -rdynamic $(OPTFLAGS)
+CFLAGS=-g -O2 -Wall -Wextra -Isrc -lm -ldl -rdynamic $(OPTFLAGS)
 LIBS=-ldl $(OPTLIBS)
 PREFIX?=/usr/local
 
